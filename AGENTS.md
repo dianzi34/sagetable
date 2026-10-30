@@ -23,7 +23,8 @@ A full-stack web app where users bring a real question to a roundtable of 2–3 
 | Framework | Next.js 15 (App Router), React 19, TypeScript 5 in strict mode |
 | Styling | Tailwind CSS |
 | Backend | Next.js Route Handlers under `src/app/api` |
-| Database | PostgreSQL 16 with pgvector, Prisma ORM |
+| Database | PostgreSQL 16 with pgvector, Prisma ORM; Neon in production, `pgvector/pgvector:pg16` Docker image locally and in CI |
+| Embeddings | Voyage AI `voyage-3-lite` (1024 dimensions), server side only. The Claude API does not create embeddings |
 | Auth | JWT signed with `jose`, stored in an httpOnly cookie; passwords hashed with `bcryptjs` |
 | Real-time | Server-Sent Events (SSE) from Route Handlers |
 | AI | Claude API through `@anthropic-ai/sdk`, server side only |
@@ -31,10 +32,13 @@ A full-stack web app where users bring a real question to a roundtable of 2–3 
 | Testing | Vitest + React Testing Library (unit/integration), Playwright (E2E) |
 | CI/CD | GitHub Actions, Vercel (preview per PR, production on `main`) |
 
+Environment variables (all server only, validated with zod in `src/lib/env.ts`): `DATABASE_URL`, `JWT_SECRET`, `ANTHROPIC_API_KEY`, `VOYAGE_API_KEY`.
+
 ### 1.3 Architecture Overview
 
 ```
 src/
+  middleware.ts             # Redirects signed-out users to sign-in (Edge runtime)
   app/                      # Routes only (pages, layouts, route handlers)
     (auth)/sign-in/         # Public pages
     themes/
@@ -48,6 +52,7 @@ src/
     roundtable/             # AnswerCard, PassageBlock, PlainExplanation, ...
     themes/                 # ThemePicker, FigureSuggestion
   server/
+    db.ts                   # The single shared Prisma client
     services/               # Business logic (roundtableService.ts, ...)
     auth/                   # Session, JWT, requireRole()
     ai/                     # Claude client and prompt builders
@@ -67,7 +72,9 @@ docs/
 Key patterns:
 
 - Route handlers stay thin: validate input with zod → check auth/role → call a service → return a response.
-- All business logic lives in `src/server/services`. Components and route handlers never call Prisma directly.
+- All business logic lives in `src/server/services`. Components and route handlers never call Prisma directly. Import the Prisma client only from `src/server/db.ts`.
+- `src/middleware.ts` runs on the Edge runtime: it verifies the JWT with `jose` and redirects; it never imports Prisma or `bcryptjs`.
+- Passage embeddings are stored in a column declared as `Unsupported("vector(1024)")` in `schema.prisma`. Similarity search lives only in `src/server/retrieval` and uses `prisma.$queryRaw` tagged templates, because Prisma's query API cannot run vector search.
 - Server Components by default. Add `"use client"` only to components that need state, effects, or event handlers.
 - API responses use one shape: `{ data: ... }` on success, `{ error: { code, message } }` on failure, with the correct HTTP status (400, 401, 403, 404, 429, 500).
 - Role checks use `requireRole("curator" | "admin")` on the server, never only in the UI.
@@ -93,9 +100,9 @@ Key patterns:
 - Follow TDD (red → green → refactor). Write the failing test first and commit it as `test(...)`, then commit the implementation as `feat(...)` or `fix(...)`.
 - Every acceptance criterion in the issue maps to at least one test.
 - Unit tests (Vitest): services, helpers, zod schemas, and components (React Testing Library, queried by role and label, not by class name).
-- Integration tests (Vitest): route handlers against a test database.
+- Integration tests (Vitest): route handlers against a Postgres + pgvector test database (the Docker image locally, a GitHub Actions service container in CI), reset between test files.
 - E2E tests (Playwright): sign in, start a roundtable, save to notebook.
-- Never call the real Claude API in tests. Mock `src/server/ai` and stream fixtures instead.
+- Never call the real Claude or Voyage APIs in tests. Mock `src/server/ai` and stream fixtures instead.
 - Test names describe behavior: `it("shows a retry button when the stream fails")`.
 - Coverage goal: 80% lines for `src/server` and `src/lib`.
 
@@ -223,18 +230,19 @@ Don't:
 
 ### 4.2 Dependencies
 
-- Prefer: `zod`, `jose`, `bcryptjs`, `@anthropic-ai/sdk`, Prisma, React Testing Library, native `fetch`, `Intl` for dates.
+- Prefer: `zod`, `jose`, `bcryptjs`, `@anthropic-ai/sdk`, `voyageai`, Prisma, React Testing Library, native `fetch`, `Intl` for dates.
 - Avoid: UI kits (MUI, Chakra, Bootstrap), `axios`, `moment`, Redux.
 - Ask before adding any dependency not listed here, and state why it is needed.
 
 ### 4.3 Security
 
 - Secrets live only in environment variables, validated with zod at startup. Never commit `.env*` files.
-- The Claude API key is server only; never prefix it with `NEXT_PUBLIC_`.
+- The Claude and Voyage API keys are server only; never prefix them with `NEXT_PUBLIC_`.
 - Validate every request with zod; return 400 on invalid input.
 - Enforce roles on the server for every curator and admin route; return 403 otherwise.
+- Services always filter user data by the signed-in `userId`. Requests for another user's roundtable or notebook item return 404, not 403, so they do not reveal that it exists.
 - Auth cookies are `httpOnly`, `Secure`, `SameSite=Lax`.
-- Use Prisma queries only; never `$queryRawUnsafe` with user input.
+- Use Prisma's query API. The only raw SQL is `prisma.$queryRaw` tagged templates in `src/server/retrieval` (parameterized). Never use `$queryRawUnsafe` or `$executeRawUnsafe`.
 - Never log passwords, tokens, or API keys.
 - Enforce the daily roundtable limit on the server; return 429 with the reset time.
 
