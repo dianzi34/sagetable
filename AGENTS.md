@@ -32,7 +32,7 @@ A full-stack web app where users bring a real question to a roundtable of 2–3 
 | Testing | Vitest + React Testing Library (unit/integration), Playwright (E2E) |
 | CI/CD | GitHub Actions, Vercel (preview per PR, production on `main`) |
 
-Environment variables (all server only, validated with zod in `src/lib/env.ts`): `DATABASE_URL`, `JWT_SECRET`, `ANTHROPIC_API_KEY`, `VOYAGE_API_KEY`.
+Environment variables (all server only, validated with zod in `src/lib/env.ts`): `DATABASE_URL`, `JWT_SECRET`, `ANTHROPIC_API_KEY`, `VOYAGE_API_KEY`, `AI_PROVIDER` (`live` or `mock`).
 
 ### 1.3 Architecture Overview
 
@@ -75,6 +75,8 @@ Key patterns:
 - All business logic lives in `src/server/services`. Components and route handlers never call Prisma directly. Import the Prisma client only from `src/server/db.ts`.
 - `src/middleware.ts` runs on the Edge runtime: it verifies the JWT with `jose` and redirects; it never imports Prisma or `bcryptjs`.
 - Passage embeddings are stored in a column declared as `Unsupported("vector(1024)")` in `schema.prisma`. Similarity search lives only in `src/server/retrieval` and uses `prisma.$queryRaw` tagged templates, because Prisma's query API cannot run vector search.
+- A figure's voice and a figure's sources are separate. The figure's persona notes (`Figure.voiceNotes`) shape how they speak. Passages come only from retrieval: Claude picks one retrieved candidate by its ID (or none), and the UI renders the stored text for that ID, never text from the model.
+- Streaming route handlers set `export const runtime = "nodejs"` and `export const maxDuration = 60` so parallel answers are not cut off by the Vercel function timeout.
 - Server Components by default. Add `"use client"` only to components that need state, effects, or event handlers.
 - API responses use one shape: `{ data: ... }` on success, `{ error: { code, message } }` on failure, with the correct HTTP status (400, 401, 403, 404, 429, 500).
 - Role checks use `requireRole("curator" | "admin")` on the server, never only in the UI.
@@ -102,7 +104,7 @@ Key patterns:
 - Unit tests (Vitest): services, helpers, zod schemas, and components (React Testing Library, queried by role and label, not by class name).
 - Integration tests (Vitest): route handlers against a Postgres + pgvector test database (the Docker image locally, a GitHub Actions service container in CI), reset between test files.
 - E2E tests (Playwright): sign in, start a roundtable, save to notebook.
-- Never call the real Claude or Voyage APIs in tests. Mock `src/server/ai` and stream fixtures instead.
+- Never call the real Claude or Voyage APIs in tests. Unit and integration tests mock `src/server/ai`; E2E tests run the app with `AI_PROVIDER=mock`, which returns fixture streams and embeddings.
 - Test names describe behavior: `it("shows a retry button when the stream fails")`.
 - Coverage goal: 80% lines for `src/server` and `src/lib`.
 
@@ -230,13 +232,14 @@ Don't:
 
 ### 4.2 Dependencies
 
-- Prefer: `zod`, `jose`, `bcryptjs`, `@anthropic-ai/sdk`, `voyageai`, Prisma, React Testing Library, native `fetch`, `Intl` for dates.
+- Prefer: `zod`, `jose`, `bcryptjs`, `@anthropic-ai/sdk`, `voyageai`, `server-only`, Prisma, React Testing Library, native `fetch`, `Intl` for dates.
 - Avoid: UI kits (MUI, Chakra, Bootstrap), `axios`, `moment`, Redux.
 - Ask before adding any dependency not listed here, and state why it is needed.
 
 ### 4.3 Security
 
 - Secrets live only in environment variables, validated with zod at startup. Never commit `.env*` files.
+- Every module in `src/server` starts with `import "server-only"`, so the build fails if client code imports it.
 - The Claude and Voyage API keys are server only; never prefix them with `NEXT_PUBLIC_`.
 - Validate every request with zod; return 400 on invalid input.
 - Enforce roles on the server for every curator and admin route; return 403 otherwise.
