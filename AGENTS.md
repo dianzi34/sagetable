@@ -24,7 +24,7 @@ A full-stack web app where users bring a real question to a roundtable of 2–3 
 | Styling | Tailwind CSS |
 | Backend | Next.js Route Handlers under `src/app/api` |
 | Database | PostgreSQL 16 with pgvector, Prisma ORM; Neon in production, `pgvector/pgvector:pg16` Docker image locally and in CI |
-| Embeddings | Voyage AI `voyage-3-lite` (1024 dimensions), server side only. The Claude API does not create embeddings |
+| Embeddings | Voyage AI `voyage-4-lite` with `output_dimension: 1024`, server side only. Passages use `input_type: "document"` and questions use `input_type: "query"`, with the same model. The Claude API does not create embeddings |
 | Auth | JWT signed with `jose`, stored in an httpOnly cookie; passwords hashed with `bcryptjs` |
 | Real-time | Server-Sent Events (SSE) from Route Handlers |
 | AI | Claude API through `@anthropic-ai/sdk`, server side only |
