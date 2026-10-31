@@ -6,6 +6,7 @@
 - Then read the GitHub issue you are working on and the PRD user story it references.
 - If a request conflicts with this file, stop and ask instead of guessing.
 - Work only on the scope of the current issue. Do not implement other issues "while you're there".
+- Work only from the files in the current working tree (this file, docs/, and the source code). Do not read, copy, or restore code from other branches, stashes, or git history. (Added in v2: in testing, the agent searched other branches and git history for context instead of relying on the working tree.)
 
 ---
 
@@ -210,6 +211,12 @@ Implement features so they fit these flows:
 
 - Commits and PRs always reference the issue number.
 - A TODO must reference an issue: `// TODO(#12): handle retry backoff`. No bare TODOs.
+
+### 3.6 Git Operations by AI Agents
+<!-- Added in v2: in testing, the agent tried to run git add on its own. -->
+- AI agents do not run git add, commit, push, merge, rebase, or checkout.
+- When work is ready, the agent stops, lists the changed files, and proposes a commit message in the section 3.3 format.
+- The human partner reviews the changes and makes the commit.
 
 ---
 
