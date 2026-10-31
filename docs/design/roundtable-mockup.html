@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SageTable — Roundtable mockup v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=Literata:ital,opsz,wght@1,7..72,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #ffffff; --ink: #232323; --muted: #6b6b6b; --line: #e6e6e6; --grid: #eef0f3;
+    --table: #f2efea; --table-edge: #e0dbd3; --leg: #d8d2c9;
+    --bubble: #ffffff; --blue: #2d5be3; --danger: #b3362c; --slip: #fffdf6;
+    color-scheme: light; box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #17181d; --ink: #f1f1f1; --muted: #a9abb3; --line: #33353d; --grid: #1f2127;
+      --table: #2c2b2e; --table-edge: #3a383c; --leg: #45424a; --bubble: #24252c; --blue: #7d9cff; --danger: #f08a80; --slip: #26252a;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #17181d; --ink: #f1f1f1; --muted: #a9abb3; --line: #33353d; --grid: #1f2127;
+    --table: #2c2b2e; --table-edge: #3a383c; --leg: #45424a; --bubble: #24252c; --blue: #7d9cff; --danger: #f08a80; --slip: #26252a;
+    color-scheme: dark;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.5; }
+  :focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; border-radius: 6px; }
+
+  header { max-width: 1100px; margin: 0 auto; padding: 28px 24px 0; display: flex; align-items: flex-start; gap: 18px; }
+  .back { width: 48px; height: 48px; flex: none; border-radius: 50%; border: 1.5px solid var(--line); background: var(--paper); display: grid; place-items: center; color: var(--ink); cursor: pointer; }
+  .title h1 { font-family: "Bricolage Grotesque", "Figtree", sans-serif; font-weight: 800; font-size: clamp(2rem, 4.5vw, 3rem); line-height: 1; margin: 0; letter-spacing: -0.02em; }
+  .title p { margin: 8px 0 0; color: var(--muted); }
+
+  .question { max-width: 760px; margin: 28px auto 0; padding: 0 24px; text-align: center; }
+  .pill { display: inline-block; font-size: .88rem; color: var(--muted); border: 1.5px solid var(--line); border-radius: 999px; padding: 3px 12px; }
+  .question h2 { font-family: "Bricolage Grotesque", "Figtree", sans-serif; font-weight: 600; font-size: clamp(1.2rem, 2.4vw, 1.6rem); line-height: 1.3; margin: 12px 0 0; }
+
+  .room {
+    position: relative; max-width: 1100px; margin: 8px auto 0; aspect-ratio: 1000 / 560;
+    background-image: linear-gradient(var(--grid) 1.5px, transparent 1.5px), linear-gradient(90deg, var(--grid) 1.5px, transparent 1.5px);
+    background-size: 48px 48px; background-position: center 60%;
+    -webkit-mask-image: radial-gradient(ellipse 75% 85% at 50% 60%, #000 55%, transparent 100%);
+            mask-image: radial-gradient(ellipse 75% 85% at 50% 60%, #000 55%, transparent 100%);
+  }
+  .room svg.scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .hit { cursor: pointer; }
+  .hit:focus { outline: none; }
+  .hit:focus-visible .ring { stroke: var(--blue); stroke-width: 4; }
+  .lifted { transform: translateY(-14px) rotate(-8deg); transform-box: fill-box; transform-origin: center; }
+  .pot, .cake { transition: transform .25s ease; }
+  .steam path { stroke-dasharray: 4 6; animation: rise 2.4s linear infinite; }
+  @keyframes rise { to { stroke-dashoffset: -40; } }
+  .fill { transition: opacity .6s ease; }
+  @media (prefers-reduced-motion: reduce) { .steam path { animation: none; } .pot, .cake, .fill { transition: none; } }
+
+  .bubble {
+    position: absolute; max-width: 230px; background: var(--bubble); color: var(--ink); font-size: .92rem; line-height: 1.4;
+    border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 14px; box-shadow: 0 2px 0 var(--line);
+    opacity: 0; transition: opacity .25s; pointer-events: none;
+  }
+  .bubble.show { opacity: 1; }
+  .bubble.left { left: 3%; top: 26%; }
+  .bubble.top { left: 57%; top: 7%; }
+  .bubble.right { right: 3%; top: 26%; }
+  .dots span { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); margin: 0 2px; animation: dot 1s infinite; }
+  .dots span:nth-child(2) { animation-delay: .15s; } .dots span:nth-child(3) { animation-delay: .3s; }
+  @keyframes dot { 50% { transform: translateY(-4px); } }
+  @media (prefers-reduced-motion: reduce) { .dots span { animation: none; } }
+  @media (max-width: 640px) { .bubble { display: none; } }
+
+  .tip { text-align: center; color: var(--muted); font-size: .92rem; margin: 4px 24px 0; min-height: 1.5em; }
+
+  .ask { max-width: 720px; margin: 18px auto 0; padding: 0 24px; }
+  .ask form { display: flex; align-items: center; gap: 8px; border: 1.5px solid var(--line); border-radius: 16px; background: var(--paper); padding: 8px 8px 8px 18px; box-shadow: 0 3px 0 var(--line); }
+  .ask input { flex: 1; border: 0; background: transparent; font: inherit; color: var(--ink); padding: 8px 0; min-width: 0; }
+  .ask input:focus { outline: none; }
+  .ask form:focus-within { border-color: var(--blue); }
+  .send { width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--blue); color: #fff; display: grid; place-items: center; cursor: pointer; flex: none; }
+  .send:disabled { background: var(--line); cursor: not-allowed; }
+
+  .answers { max-width: 1100px; margin: 40px auto 0; padding: 0 24px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; align-items: start; }
+  @media (max-width: 900px) { .answers { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--paper); border: 2px solid var(--ink); padding: 20px 20px 16px;
+    border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px;
+    display: flex; flex-direction: column; gap: 14px; transition: box-shadow .2s;
+  }
+  .card.spot { box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 45%, transparent); }
+  .who { display: flex; gap: 12px; align-items: center; }
+  .who svg { width: 56px; height: 56px; flex: none; }
+  .who h3 { margin: 0; font-family: "Bricolage Grotesque", "Figtree", sans-serif; font-size: 1.15rem; }
+  .who span { color: var(--muted); font-size: .86rem; }
+  .answer { margin: 0; }
+  .cursor { display: inline-block; width: .5em; height: 1.05em; vertical-align: -.15em; background: var(--c); margin-left: 2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
+  .slip {
+    margin: 0; background: var(--slip); padding: 16px 16px 12px; transform: rotate(-0.8deg);
+    border: 1.5px solid var(--line); border-left: 5px solid var(--c); border-radius: 4px 12px 10px 4px;
+    box-shadow: 2px 3px 0 var(--line);
+  }
+  .slip blockquote { margin: 0; font-family: "Literata", Georgia, serif; font-style: italic; font-size: 1.05rem; line-height: 1.6; }
+  .slip figcaption { margin-top: 8px; color: var(--muted); font-size: .84rem; }
+  .plain h4 { margin: 0 0 4px; font-size: .95rem; }
+  .plain p { margin: 0; color: var(--muted); }
+  .notice { margin: 0; padding: 12px 14px; border: 1.5px dashed var(--line); border-radius: 12px; color: var(--muted); }
+  .error { margin: 0; color: var(--danger); }
+  .placeholder { height: 70px; border-radius: 12px; background: repeating-linear-gradient(-45deg, var(--grid), var(--grid) 8px, transparent 8px, transparent 16px); border: 1.5px dashed var(--line); }
+  .row { display: flex; justify-content: flex-end; gap: 8px; border-top: 1.5px dashed var(--line); padding-top: 12px; }
+  button.text { font: inherit; font-size: .9rem; background: none; border: 1.5px solid var(--line); color: var(--ink); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+  button.text.primary { background: var(--c); border-color: var(--c); color: #fff; }
+  button.text:disabled { opacity: .45; cursor: not-allowed; }
+
+  .preview { max-width: 1100px; margin: 36px auto 0; padding: 0 24px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; color: var(--muted); font-size: .88rem; }
+  footer { max-width: 760px; margin: 28px auto 0; padding: 0 24px 40px; text-align: center; color: var(--muted); font-size: .84rem; }
+</style>
+</head>
+<body>
+
+<!-- Hand-drawn avatars, reused in the scene and in the answer cards -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="wobble"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="3.2"/></filter>
+    <symbol id="av-twain" viewBox="0 0 100 100">
+      <g filter="url(#wobble)">
+        <path d="M18 48 C10 30 24 12 44 14 C52 6 72 10 78 22 C92 28 90 48 82 56 L78 40 C70 30 34 28 24 40 Z" fill="#f4f4f2" stroke="#cfcfcf" stroke-width="1.5"/>
+        <ellipse cx="51" cy="56" rx="25" ry="29" fill="#f2c4a2"/>
+        <path d="M31 44 Q38 38 46 43" stroke="#e9e9e9" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M56 43 Q64 38 71 44" stroke="#e9e9e9" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <circle cx="40" cy="51" r="2.6" fill="#2b2b2b"/><circle cx="62" cy="51" r="2.6" fill="#2b2b2b"/>
+        <path d="M51 50 C48 58 47 62 52 64 C55 63 55 58 51 50Z" fill="#e8846a"/>
+        <path d="M30 70 C38 62 46 66 51 68 C56 66 64 62 72 70 C66 76 58 74 51 71 C44 74 36 76 30 70Z" fill="#f7f7f5" stroke="#cfcfcf" stroke-width="1.2"/>
+        <path d="M45 78 Q51 80 57 78" stroke="#c46a5a" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </g>
+    </symbol>
+    <symbol id="av-keller" viewBox="0 0 100 100">
+      <g filter="url(#wobble)">
+        <ellipse cx="50" cy="16" rx="16" ry="11" fill="#7a5340"/>
+        <path d="M22 52 C18 26 36 18 50 20 C66 18 84 28 78 54 C72 40 62 32 50 32 C38 32 28 40 22 52Z" fill="#7a5340"/>
+        <ellipse cx="50" cy="56" rx="24" ry="28" fill="#f6d6c2"/>
+        <path d="M27 46 C30 34 42 30 50 31 C42 36 36 40 27 46Z" fill="#7a5340"/>
+        <path d="M37 50 Q41 47 45 50" stroke="#3a2a24" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M56 50 Q60 47 64 50" stroke="#3a2a24" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        <path d="M50 52 C47 59 48 63 52 63" stroke="#e48aa0" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+        <path d="M43 72 Q50 77 57 72" stroke="#d0575e" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <circle cx="35" cy="64" r="4" fill="#f3b2b0" opacity=".7"/><circle cx="65" cy="64" r="4" fill="#f3b2b0" opacity=".7"/>
+        <path d="M30 92 C38 84 62 84 70 92" stroke="#ffffff" stroke-width="5" fill="none" stroke-dasharray="3 3"/>
+      </g>
+    </symbol>
+    <symbol id="av-curie" viewBox="0 0 100 100">
+      <g filter="url(#wobble)">
+        <path d="M20 56 C16 28 34 14 50 16 C68 14 86 30 80 58 C76 42 66 30 50 30 C34 30 24 42 20 56Z" fill="#4b413a"/>
+        <circle cx="80" cy="38" r="9" fill="#4b413a"/>
+        <ellipse cx="50" cy="58" rx="22" ry="28" fill="#f4dccd"/>
+        <path d="M50 30 C46 34 40 36 30 44 C34 34 42 30 50 30Z M50 30 C54 34 60 36 70 44 C66 34 58 30 50 30Z" fill="#4b413a"/>
+        <circle cx="41" cy="53" r="2.4" fill="#2b2b2b"/><circle cx="59" cy="53" r="2.4" fill="#2b2b2b"/>
+        <path d="M36 47 L45 46" stroke="#4b413a" stroke-width="2" stroke-linecap="round"/><path d="M55 46 L64 47" stroke="#4b413a" stroke-width="2" stroke-linecap="round"/>
+        <path d="M50 54 C47 61 47 64 51 65 C54 64 53 60 50 54Z" fill="#f08a6b"/>
+        <path d="M44 74 L56 74" stroke="#b9645a" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M28 98 C30 88 40 84 50 86 C60 84 70 88 72 98Z" fill="#2c2c2c"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<header>
+  <button class="back" aria-label="Back to themes"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></button>
+  <div class="title"><h1>SageTable</h1><p>Pull up a chair. Great minds are listening.</p></div>
+</header>
+
+<section class="question">
+  <span class="pill">Dealing with failure</span>
+  <h2 id="qtext">“I failed my first technical interview, and now I’m afraid to try again. How do I keep going?”</h2>
+</section>
+
+<div class="room">
+  <svg class="scene" viewBox="0 0 1000 560" role="group" aria-label="The round table with Mark Twain, Helen Keller, and Marie Curie">
+    <!-- pedestal table -->
+    <g filter="url(#wobble)">
+      <rect x="478" y="440" width="44" height="95" fill="var(--leg)"/>
+      <ellipse cx="500" cy="538" rx="96" ry="14" fill="var(--leg)"/>
+      <ellipse cx="500" cy="382" rx="340" ry="122" fill="var(--table-edge)"/>
+      <ellipse cx="500" cy="366" rx="340" ry="122" fill="var(--table)"/>
+    </g>
+
+    <!-- old books, decoration -->
+    <g filter="url(#wobble)" aria-hidden="true">
+      <rect x="348" y="420" width="88" height="16" rx="3" fill="#6f8fb8"/>
+      <rect x="356" y="405" width="80" height="15" rx="3" fill="#c96a54"/>
+      <rect x="352" y="391" width="72" height="14" rx="3" fill="#e2c26a"/>
+    </g>
+
+    <!-- cake plate (pick up) -->
+    <g class="hit cake" id="cake" tabindex="0" role="button" aria-label="Pick up the cake to offer a slice">
+      <g filter="url(#wobble)">
+        <ellipse class="ring" cx="500" cy="366" rx="70" ry="24" fill="#ffffff" stroke="#e4e0da" stroke-width="2"/>
+        <path d="M462 360 L520 340 L540 360 L540 374 L462 374 Z" fill="#f6e2b8"/>
+        <path d="M462 360 L520 340 L540 360 Z" fill="#fff6ea"/>
+        <rect x="462" y="364" width="78" height="5" fill="#f19aa8"/>
+        <circle cx="514" cy="338" r="8" fill="#e2453f"/><path d="M512 330 l4 -6 l3 6" stroke="#4e9a52" stroke-width="2.5" fill="none"/>
+        <circle cx="555" cy="372" r="9" fill="#bfe0c9"/><circle cx="447" cy="374" r="9" fill="#f7c6d0"/>
+      </g>
+    </g>
+
+    <!-- coffee pot (pick up) -->
+    <g class="hit pot" id="pot" tabindex="0" role="button" aria-label="Pick up the coffee pot">
+      <g filter="url(#wobble)">
+        <path class="ring" d="M596 452 C590 420 596 402 612 396 L648 396 C664 402 670 420 664 452 Z" fill="#7fb3c9" stroke="#5f93a9" stroke-width="2"/>
+        <rect x="608" y="386" width="44" height="12" rx="5" fill="#5f93a9"/>
+        <circle cx="630" cy="381" r="6" fill="#5f93a9"/>
+        <path d="M596 412 C578 404 572 392 566 384" stroke="#7fb3c9" stroke-width="8" fill="none" stroke-linecap="round"/>
+        <path d="M664 410 C682 412 682 436 664 440" stroke="#5f93a9" stroke-width="6" fill="none"/>
+      </g>
+    </g>
+
+    <!-- seats: avatar + cup -->
+    <g data-seat="twain">
+      <g class="hit" data-avatar="twain" tabindex="0" role="button" aria-label="Mark Twain. Show his answer">
+        <circle class="ring" cx="120" cy="300" r="64" fill="var(--paper)" stroke="var(--line)" stroke-width="2"/>
+        <use href="#av-twain" x="66" y="246" width="108" height="108"/>
+        <text x="120" y="392" text-anchor="middle" font-size="17" fill="var(--muted)" font-family="Figtree, sans-serif">Mark Twain</text>
+      </g>
+      <g class="hit" data-cup="twain" tabindex="0" role="button" aria-label="Mark Twain’s cup">
+        <g filter="url(#wobble)">
+          <ellipse class="ring" cx="272" cy="362" rx="34" ry="11" fill="#ffffff" stroke="#e4e0da" stroke-width="2"/>
+          <path d="M252 334 L292 334 L288 360 L256 360 Z" fill="#f3d36b"/>
+          <path d="M292 340 C304 340 304 354 290 354" stroke="#f3d36b" stroke-width="5" fill="none"/>
+          <ellipse cx="272" cy="334" rx="20" ry="6" fill="#efe9dc"/>
+          <ellipse class="fill" cx="272" cy="335" rx="17" ry="4.5" fill="#6b4024" opacity="0"/>
+        </g>
+        <g class="steam" opacity="0"><path d="M265 324 q-6 -10 0 -20 q6 -10 0 -20" stroke="#bdbdbd" stroke-width="2.5" fill="none"/><path d="M279 324 q-6 -10 0 -20 q6 -10 0 -20" stroke="#bdbdbd" stroke-width="2.5" fill="none"/></g>
+        <g class="treat" opacity="0" filter="url(#wobble)"><path d="M300 368 L326 360 L334 368 L334 376 L300 376Z" fill="#f6e2b8"/><circle cx="324" cy="358" r="4.5" fill="#e2453f"/></g>
+      </g>
+    </g>
+
+    <g data-seat="keller">
+      <g class="hit" data-avatar="keller" tabindex="0" role="button" aria-label="Helen Keller. Show her answer">
+        <circle class="ring" cx="500" cy="118" r="64" fill="var(--paper)" stroke="var(--line)" stroke-width="2"/>
+        <use href="#av-keller" x="446" y="64" width="108" height="108"/>
+        <text x="500" y="210" text-anchor="middle" font-size="17" fill="var(--muted)" font-family="Figtree, sans-serif">Helen Keller</text>
+      </g>
+      <g class="hit" data-cup="keller" tabindex="0" role="button" aria-label="Helen Keller’s cup">
+        <g filter="url(#wobble)">
+          <ellipse class="ring" cx="410" cy="292" rx="34" ry="11" fill="#ffffff" stroke="#e4e0da" stroke-width="2"/>
+          <path d="M390 264 L430 264 L426 290 L394 290 Z" fill="#f3d36b"/>
+          <path d="M430 270 C442 270 442 284 428 284" stroke="#f3d36b" stroke-width="5" fill="none"/>
+          <ellipse cx="410" cy="264" rx="20" ry="6" fill="#efe9dc"/>
+          <ellipse class="fill" cx="410" cy="265" rx="17" ry="4.5" fill="#6b4024" opacity="0"/>
+        </g>
+        <g class="steam" opacity="0"><path d="M403 254 q-6 -10 0 -20 q6 -10 0 -20" stroke="#bdbdbd" stroke-width="2.5" fill="none"/><path d="M417 254 q-6 -10 0 -20 q6 -10 0 -20" stroke="#bdbdbd" stroke-width="2.5" fill="none"/></g>
+        <g class="treat" opacity="0" filter="url(#wobble)"><path d="M440 298 L466 290 L474 298 L474 306 L440 306Z" fill="#f6e2b8"/><circle cx="464" cy="288" r="4.5" fill="#e2453f"/></g>
+      </g>
+    </g>
+
+    <g data-seat="curie">
+      <g class="hit" data-avatar="curie" tabindex="0" role="button" aria-label="Marie Curie. Show her answer">
+        <circle class="ring" cx="880" cy="300" r="64" fill="var(--paper)" stroke="var(--line)" stroke-width="2"/>
+        <use href="#av-curie" x="826" y="246" width="108" height="108"/>
+        <text x="880" y="392" text-anchor="middle" font-size="17" fill="var(--muted)" font-family="Figtree, sans-serif">Marie Curie</text>
+      </g>
+      <g class="hit" data-cup="curie" tabindex="0" role="button" aria-label="Marie Curie’s cup">
+        <g filter="url(#wobble)">
+          <ellipse class="ring" cx="728" cy="362" rx="34" ry="11" fill="#ffffff" stroke="#e4e0da" stroke-width="2"/>
+          <path d="M708 334 L748 334 L744 360 L712 360 Z" fill="#f3d36b"/>
+          <path d="M708 340 C696 340 696 354 710 354" stroke="#f3d36b" stroke-width="5" fill="none"/>
+          <ellipse cx="728" cy="334" rx="20" ry="6" fill="#efe9dc"/>
+          <ellipse class="fill" cx="728" cy="335" rx="17" ry="4.5" fill="#6b4024" opacity="0"/>
+        </g>
+        <g class="steam" opacity="0"><path d="M721 324 q-6 -10 0 -20 q6 -10 0 -20" stroke="#bdbdbd" stroke-width="2.5" fill="none"/><path d="M735 324 q-6 -10 0 -20 q6 -10 0 -20" stroke="#bdbdbd" stroke-width="2.5" fill="none"/></g>
+        <g class="treat" opacity="0" filter="url(#wobble)"><path d="M666 370 L692 362 L700 370 L700 378 L666 378Z" fill="#f6e2b8"/><circle cx="690" cy="360" r="4.5" fill="#e2453f"/></g>
+      </g>
+    </g>
+  </svg>
+
+  <div class="bubble left" id="b-twain" aria-hidden="true"></div>
+  <div class="bubble top" id="b-keller" aria-hidden="true"></div>
+  <div class="bubble right" id="b-curie" aria-hidden="true"></div>
+</div>
+
+<p class="tip" id="tip" aria-live="polite">Pick up the coffee pot or the cake, then choose a guest’s cup.</p>
+
+<div class="ask">
+  <form id="askForm">
+    <label for="askInput" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Ask the table a question</label>
+    <input id="askInput" maxlength="1000" placeholder="Ask the table anything…">
+    <button class="send" id="sendBtn" aria-label="Ask the table" disabled><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg></button>
+  </form>
+</div>
+
+<section class="answers" id="answers" aria-label="Answers"></section>
+
+<div class="preview" role="group" aria-label="Preview states">
+  <span>Preview states:</span>
+  <button class="text" id="simFail">Make Marie Curie’s answer fail</button>
+</div>
+
+<footer>Mockup with sample data. Answers are AI interpretations inspired by each figure’s writings. Passages are quoted word for word from public-domain works.</footer>
+
+<script>
+const F = {
+  twain: { name: "Mark Twain", meta: "Writer, United States, 1835–1910", c: "#2f6f5e",
+    answer: "Fear of a second try is natural. I knew it well. I set type, piloted riverboats, and sank a small fortune into a typesetting machine that never worked. Being afraid isn’t the problem. Letting the fear choose for you is.",
+    passage: { text: "Courage is resistance to fear, mastery of fear—not absence of fear.", source: "Pudd’nhead Wilson, 1894, Chapter 12" },
+    plain: "Being brave doesn’t mean you stop feeling scared. It means you act while you’re still scared.",
+    coffee: "Coffee! Now you have my full attention.", cake: "Cake before supper. I approve." },
+  keller: { name: "Helen Keller", meta: "Author and activist, United States, 1880–1968", c: "#7d4a92",
+    answer: "When I was a child, every word I learned came after many failed attempts at my teacher’s hand. I came to believe that struggle and progress travel together. One failed interview shows you where the work is. It does not tell you who you are.",
+    passage: { text: "Although the world is full of suffering, it is full also of the overcoming of it.", source: "Optimism: An Essay, 1903, Part I" },
+    plain: "Hard things happen everywhere, but so do people getting past them. Your setback is part of a story that can still turn.",
+    coffee: "Thank you. It smells wonderful.", cake: "How kind of you." },
+  curie: { name: "Marie Curie", meta: "Physicist and chemist, Poland and France, 1867–1934", c: "#2a64a8",
+    answer: "When Pierre and I began, our laboratory was a leaking shed, and for months our results told us nothing. I learned to read each failed attempt as a measurement, not a verdict.",
+    passage: null, plain: null,
+    coffee: "Merci. Strong, please. I have work to do.", cake: "Just a small piece." }
+};
+const ORDER = ["twain", "keller", "curie"];
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const S = { holding: null, cards: {} };
+let timers = [];
+const esc = s => s.replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+const tip = document.getElementById("tip");
+
+/* ---------- table interactions ---------- */
+function bubble(k, html, ms) {
+  const b = document.getElementById("b-" + k);
+  b.innerHTML = html; b.classList.add("show");
+  clearTimeout(b._t); if (ms) b._t = setTimeout(() => b.classList.remove("show"), ms);
+}
+function pickUp(item) {
+  S.holding = S.holding === item ? null : item;
+  document.getElementById("pot").classList.toggle("lifted", S.holding === "pot");
+  document.getElementById("cake").classList.toggle("lifted", S.holding === "cake");
+  tip.textContent = S.holding === "pot" ? "You’re holding the coffee pot. Choose a cup to pour."
+    : S.holding === "cake" ? "You’re holding the cake. Choose who gets a slice."
+    : "Pick up the coffee pot or the cake, then choose a guest’s cup.";
+}
+function serve(k) {
+  const seat = document.querySelector(`[data-cup="${k}"]`);
+  if (S.holding === "pot") {
+    seat.querySelector(".fill").setAttribute("opacity", "1");
+    seat.querySelector(".steam").setAttribute("opacity", "1");
+    bubble(k, esc(F[k].coffee), 2600); tip.textContent = `You poured coffee for ${F[k].name}.`;
+  } else if (S.holding === "cake") {
+    seat.querySelector(".treat").setAttribute("opacity", "1");
+    bubble(k, esc(F[k].cake), 2600); tip.textContent = `You gave ${F[k].name} a slice of cake.`;
+  } else { spotlight(k); return; }
+  S.holding = null;
+  document.getElementById("pot").classList.remove("lifted");
+  document.getElementById("cake").classList.remove("lifted");
+}
+function spotlight(k) {
+  const el = document.getElementById("card-" + k); if (!el) return;
+  el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "center" });
+  el.classList.add("spot"); setTimeout(() => el.classList.remove("spot"), 1600);
+}
+function onActivate(el, fn) {
+  el.addEventListener("click", fn);
+  el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(); } });
+}
+onActivate(document.getElementById("pot"), () => pickUp("pot"));
+onActivate(document.getElementById("cake"), () => pickUp("cake"));
+document.querySelectorAll("[data-cup]").forEach(el => onActivate(el, () => serve(el.dataset.cup)));
+document.querySelectorAll("[data-avatar]").forEach(el => onActivate(el, () => S.holding ? serve(el.dataset.avatar) : spotlight(el.dataset.avatar)));
+
+/* ---------- AnswerCard ---------- */
+function cardHTML(k) {
+  const f = F[k], c = S.cards[k];
+  const head = `<div class="who"><svg aria-hidden="true"><use href="#av-${k}"/></svg><div><h3>${f.name}</h3><span>${f.meta}</span></div></div>`;
+  const flag = dis => `<div class="row"><button class="text" data-flag="${k}" ${dis ? "disabled" : ""} aria-label="Flag ${f.name}’s answer as inaccurate">Flag</button></div>`;
+  let body;
+  if (c.status === "failed") {
+    body = `<p class="error" role="alert">${f.name}’s answer stopped before it finished. The other answers are not affected.</p>
+      <div class="row"><button class="text primary" data-retry="${k}">Retry this answer</button></div>`;
+  } else if (c.status === "streaming") {
+    body = `<p class="answer" aria-live="polite">${esc(f.answer.slice(0, c.shown))}<span class="cursor" aria-hidden="true"></span></p>
+      <div class="placeholder" aria-hidden="true"></div>${flag(true)}`;
+  } else {
+    body = `<p class="answer">${esc(f.answer)}</p>` + (f.passage
+      ? `<figure class="slip"><blockquote>“${esc(f.passage.text)}”</blockquote><figcaption>${f.passage.source}</figcaption></figure>
+         <div class="plain"><h4>In plain English</h4><p>${f.plain}</p></div>`
+      : `<p class="notice">No passage in her uploaded writings closely matches this question, so none is shown. SageTable never invents a quote.</p>`) + flag(false);
+  }
+  return `<article class="card" id="card-${k}" style="--c:${f.c}">${head}${body}</article>`;
+}
+function renderCard(k) {
+  const old = document.getElementById("card-" + k), html = cardHTML(k);
+  if (old) old.outerHTML = html; else document.getElementById("answers").insertAdjacentHTML("beforeend", html);
+  const card = document.getElementById("card-" + k);
+  card.querySelector("[data-retry]")?.addEventListener("click", () => { S.cards[k] = { status: "streaming", shown: 0 }; renderCard(k); stream(k); });
+  card.querySelector("[data-flag]")?.addEventListener("click", () => { tip.textContent = `Thanks. ${F[k].name}’s answer was sent for review.`; });
+}
+function stream(k) {
+  const f = F[k], c = S.cards[k];
+  bubble(k, `<span class="dots" aria-hidden="true"><span></span><span></span><span></span></span>`);
+  const finish = () => { c.status = "complete"; renderCard(k); bubble(k, esc(f.answer.split(". ")[0]) + ".", 4000); };
+  if (reduced) { finish(); return; }
+  const t = setInterval(() => {
+    if (c.status !== "streaming") { clearInterval(t); return; }
+    c.shown += 3;
+    if (c.shown >= f.answer.length) { clearInterval(t); finish(); return; }
+    const p = document.querySelector(`#card-${k} .answer`);
+    if (p) p.innerHTML = esc(f.answer.slice(0, c.shown)) + `<span class="cursor" aria-hidden="true"></span>`;
+  }, 22 + ORDER.indexOf(k) * 8);
+  timers.push(t);
+}
+function askTable() {
+  timers.forEach(clearInterval); timers = [];
+  document.getElementById("answers").innerHTML = "";
+  ORDER.forEach(k => { S.cards[k] = { status: "streaming", shown: 0 }; renderCard(k); });
+  ORDER.forEach(stream);
+}
+
+/* ---------- ask bar and preview ---------- */
+const input = document.getElementById("askInput"), send = document.getElementById("sendBtn");
+input.addEventListener("input", () => { send.disabled = input.value.trim().length < 10; });
+document.getElementById("askForm").addEventListener("submit", e => {
+  e.preventDefault(); if (input.value.trim().length < 10) return;
+  document.getElementById("qtext").textContent = `“${input.value.trim()}”`;
+  input.value = ""; send.disabled = true; askTable();
+});
+document.getElementById("simFail").addEventListener("click", () => {
+  S.cards.curie.status = "failed"; renderCard("curie"); document.getElementById("b-curie").classList.remove("show");
+});
+askTable();
+</script>
+</body>
+</html>
