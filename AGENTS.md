@@ -56,6 +56,7 @@ src/
     services/               # Business logic (roundtableService.ts, ...)
     auth/                   # Session, JWT, requireRole()
     ai/                     # Claude client and prompt builders
+      fixtures/             # Mock answers, passages, and streams for tests, mock mode, and UI work before the API exists
     retrieval/              # pgvector passage search
   lib/                      # Shared pure helpers and zod schemas
   types/                    # Shared TypeScript types
@@ -77,7 +78,7 @@ Key patterns:
 - Passage embeddings are stored in a column declared as `Unsupported("vector(1024)")` in `schema.prisma`. Similarity search lives only in `src/server/retrieval` and uses `prisma.$queryRaw` tagged templates, because Prisma's query API cannot run vector search.
 - A figure's voice and a figure's sources are separate. The figure's persona notes (`Figure.voiceNotes`) shape how they speak. Passages come only from retrieval: Claude picks one retrieved candidate by its ID (or none), and the UI renders the stored text for that ID, never text from the model.
 - Streaming route handlers set `export const runtime = "nodejs"` and `export const maxDuration = 60` so parallel answers are not cut off by the Vercel function timeout.
-- Server Components by default. Add `"use client"` only to components that need state, effects, or event handlers.
+- Server Components by default. Add `"use client"` only to components that need state, effects, or event handlers. Never put `"use client"` on a `page.tsx` or `layout.tsx`; move the interactive part into its own component instead.
 - API responses use one shape: `{ data: ... }` on success, `{ error: { code, message } }` on failure, with the correct HTTP status (400, 401, 403, 404, 429, 500).
 - Role checks use `requireRole("curator" | "admin")` on the server, never only in the UI.
 
@@ -99,9 +100,9 @@ Key patterns:
 
 ### 1.5 Testing Strategy
 
-- Follow TDD (red → green → refactor). Write the failing test first and commit it as `test(...)`, then commit the implementation as `feat(...)` or `fix(...)`.
+- Follow TDD (red → green → refactor). Write the failing test first and commit it as `test(...)`, then commit the implementation as `feat(...)` or `fix(...)`. Stop after the test commit and confirm the tests fail before writing the implementation; never put tests and implementation in one commit.
 - Every acceptance criterion in the issue maps to at least one test.
-- Unit tests (Vitest): services, helpers, zod schemas, and components (React Testing Library, queried by role and label, not by class name).
+- Unit tests (Vitest): services, helpers, zod schemas, and components (React Testing Library, queried by role and label, not by class name). Every component file gets a test, including large presentational ones such as `FigureAvatar`.
 - Integration tests (Vitest): route handlers against a Postgres + pgvector test database (the Docker image locally, a GitHub Actions service container in CI), reset between test files.
 - E2E tests (Playwright): sign in, start a roundtable, save to notebook.
 - Never call the real Claude or Voyage APIs in tests. Unit and integration tests mock `src/server/ai`; E2E tests run the app with `AI_PROVIDER=mock`, which returns fixture streams and embeddings.
@@ -227,7 +228,7 @@ Don't:
 
 - Don't fetch data or call Prisma inside client components.
 - Don't duplicate business rules in the UI; the server is the source of truth.
-- Don't add a new folder pattern that isn't in section 1.3.
+- Don't add a new folder pattern that isn't in section 1.3. In particular, don't create `src/data` or `__tests__` folders: mock data goes in `src/server/ai/fixtures`, and tests sit next to the file they test.
 - Don't generate text and present it as an original passage.
 
 ### 4.2 Dependencies
@@ -239,7 +240,7 @@ Don't:
 ### 4.3 Security
 
 - Secrets live only in environment variables, validated with zod at startup. Never commit `.env*` files.
-- Every module in `src/server` starts with `import "server-only"`, so the build fails if client code imports it.
+- Every module in `src/server` except `src/server/ai/fixtures` starts with `import "server-only"`, so the build fails if client code imports it. Vitest aliases `server-only` to an empty module so tests can import these files.
 - The Claude and Voyage API keys are server only; never prefix them with `NEXT_PUBLIC_`.
 - Validate every request with zod; return 400 on invalid input.
 - Enforce roles on the server for every curator and admin route; return 403 otherwise.
