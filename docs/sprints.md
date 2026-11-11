@@ -2,7 +2,7 @@
 
 - **Team:** Xinyu Li (`@dianzi34`), Bo Pang (`@suprcp`)
 - **Project Board:** [SageTable P2 Board](https://github.com/users/dianzi34/projects/1)
-- **Milestones:** [Sprint 1](https://github.com/dianzi34/sagetable/milestone/1) (Nov 9–10, 2026) | [Sprint 2](https://github.com/dianzi34/sagetable/milestone/2) (Nov 11–12, 2026)
+- **Milestones:** [Sprint 1](https://github.com/dianzi34/sagetable/milestone/1) (Nov 9-12, 2026) | [Sprint 2](https://github.com/dianzi34/sagetable/milestone/2) (Nov 13-14, 2026)
 
 ## Working Agreement
 
@@ -17,11 +17,13 @@
 
 Both sprints were planned jointly by Xinyu Li and Bo Pang on Nov 9, 2026.
 
+Schedule change (Nov 11): the instructor extended the deadline to Nov 15, so Sprint 1 now runs Nov 9-12 and Sprint 2 runs Nov 13-14. Scope and owners are unchanged; US-5 and US-6 stay in Backlog and will be reconsidered at the Sprint 1 retrospective.
+
 > **Architecture Constraint Note:** No API tokens are provided for the course, so the Claude API cannot be used. We replaced live generation with a curated answer bank matched by PostgreSQL full-text search, and dropped Voyage embeddings and pgvector so the app needs no paid AI keys. SSE still streams answers side by side.
 
 ---
 
-## Sprint 1 (Nov 9–10, 2026)
+## Sprint 1 (Nov 9-12, 2026)
 
 **Goal:** A signed-in user picks a theme or figures, asks a question, and gets a matched answer card with an original passage and a plain-English explanation, on a live Vercel URL.
 
@@ -48,7 +50,7 @@ Both sprints were planned jointly by Xinyu Li and Bo Pang on Nov 9, 2026.
 
 ### Deferred to Backlog
 
-Moved to Backlog at Sprint 1 planning (Nov 9) as out of scope for the Nov 13 deadline:
+Moved to Backlog at Sprint 1 planning (Nov 9) as out of scope for the Nov 15, 2:59 AM deadline:
 - **US-5** (Follow-up questions with one figure): [#10](https://github.com/dianzi34/sagetable/issues/10), [#11](https://github.com/dianzi34/sagetable/issues/11)
 - **US-6** (Notebook): [#12](https://github.com/dianzi34/sagetable/issues/12)
 
@@ -97,7 +99,7 @@ _To be completed at the end of Sprint 1._
 
 ---
 
-## Sprint 2 (Nov 11–12, 2026)
+## Sprint 2 (Nov 13-14, 2026)
 
 **Goal:** Figures answer side by side in real time; curators and admins manage content and access; API docs, CI/CD, and docs are release-ready.
 
