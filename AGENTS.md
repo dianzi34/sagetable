@@ -24,16 +24,16 @@ A full-stack web app where users bring a real question to a roundtable of 2–3 
 | Framework | Next.js 15 (App Router), React 19, TypeScript 5 in strict mode |
 | Styling | Tailwind CSS |
 | Backend | Next.js Route Handlers under `src/app/api` |
-| Database | PostgreSQL 16 with pgvector, Prisma ORM; Neon in production, `pgvector/pgvector:pg16` Docker image locally and in CI |
-| Embeddings | Voyage AI `voyage-4-lite` with `output_dimension: 1024`, server side only. Passages use `input_type: "document"` and questions use `input_type: "query"`, with the same model. The Claude API does not create embeddings |
+| Database | PostgreSQL 16 (Neon in production, `postgres:16` Docker image locally and in CI), Prisma ORM |
+| Search | PostgreSQL full-text search (`tsvector` + GIN indexes) + theme tag matching |
 | Auth | JWT signed with `jose`, stored in an httpOnly cookie; passwords hashed with `bcryptjs` |
-| Real-time | Server-Sent Events (SSE) from Route Handlers |
-| AI | Claude API through `@anthropic-ai/sdk`, server side only |
+| Real-time | Server-Sent Events (SSE) streaming stored answers from Route Handlers |
+| Answers | Curated answer bank stored in PostgreSQL; no external AI APIs |
 | Validation | `zod` for every request body, query, and env variable |
 | Testing | Vitest + React Testing Library (unit/integration), Playwright (E2E) |
 | CI/CD | GitHub Actions, Vercel (preview per PR, production on `main`) |
 
-Environment variables (all server only, validated with zod in `src/lib/env.ts`): `DATABASE_URL`, `JWT_SECRET`, `ANTHROPIC_API_KEY`, `VOYAGE_API_KEY`, `AI_PROVIDER` (`live` or `mock`).
+Environment variables (all server only, validated with zod in `src/lib/env.ts`): `DATABASE_URL`, `JWT_SECRET` (plus `DATABASE_URL_TEST` for integration tests). No paid AI API keys are required.
 
 ### 1.3 Architecture Overview
 
@@ -55,15 +55,15 @@ src/
   server/
     db.ts                   # The single shared Prisma client
     services/               # Business logic (roundtableService.ts, ...)
-    auth/                   # Session, JWT, requireRole()
-    ai/                     # Claude client and prompt builders
-      fixtures/             # Mock answers, passages, and streams for tests, mock mode, and UI work before the API exists
-    retrieval/              # pgvector passage search
+    auth/                   # Session, JWT, requireUser(), requireRole()
+    matching/               # PostgreSQL full-text search + theme tag answer matching
+    fixtures/               # Mock answers, passages, and SSE streams for tests and UI work before the API exists
   lib/                      # Shared pure helpers and zod schemas
   types/                    # Shared TypeScript types
 prisma/
   schema.prisma
   seed.ts
+  seed/content/             # Curated figures, themes, works, passages, and answer bank JSON
 e2e/                        # Playwright specs
 docs/
   prd.md                    # PRD (source of user stories)
@@ -76,8 +76,8 @@ Key patterns:
 - Route handlers stay thin: validate input with zod → check auth/role → call a service → return a response.
 - All business logic lives in `src/server/services`. Components and route handlers never call Prisma directly. Import the Prisma client only from `src/server/db.ts`.
 - `src/middleware.ts` runs on the Edge runtime: it verifies the JWT with `jose` and redirects; it never imports Prisma or `bcryptjs`.
-- Passage embeddings are stored in a column declared as `Unsupported("vector(1024)")` in `schema.prisma`. Similarity search lives only in `src/server/retrieval` and uses `prisma.$queryRaw` tagged templates, because Prisma's query API cannot run vector search.
-- A figure's voice and a figure's sources are separate. The figure's persona notes (`Figure.voiceNotes`) shape how they speak. Passages come only from retrieval: Claude picks one retrieved candidate by its ID (or none), and the UI renders the stored text for that ID, never text from the model.
+- Search vectors are stored as `Unsupported("tsvector")?` generated columns with GIN indexes in PostgreSQL (`Passage.searchVector` and `Answer.searchVector`). Full-text matching lives only in `src/server/matching` and uses `prisma.$queryRaw` tagged templates, because Prisma's query API cannot run `tsvector` ranking.
+- Hard rules on content and AI APIs: never call external AI APIs at runtime and never add AI SDK packages (`@anthropic-ai/sdk`, `voyageai`, etc.). Answers come only from the curated answer bank in the database; passage text must be verbatim from seeded or curator-uploaded public-domain works, never generated; and the UI states that answers are curated interpretations written in the figure's voice.
 - Streaming route handlers set `export const runtime = "nodejs"` and `export const maxDuration = 60` so parallel answers are not cut off by the Vercel function timeout.
 - Server Components by default. Add `"use client"` only to components that need state, effects, or event handlers. Never put `"use client"` on a `page.tsx` or `layout.tsx`; move the interactive part into its own component instead.
 - API responses use one shape: `{ data: ... }` on success, `{ error: { code, message } }` on failure, with the correct HTTP status (400, 401, 403, 404, 429, 500).
@@ -104,11 +104,31 @@ Key patterns:
 - Follow TDD (red → green → refactor). Write the failing test first and commit it as `test(...)`, then commit the implementation as `feat(...)` or `fix(...)`. Stop after the test commit and confirm the tests fail before writing the implementation; never put tests and implementation in one commit.
 - Every acceptance criterion in the issue maps to at least one test.
 - Unit tests (Vitest): services, helpers, zod schemas, and components (React Testing Library, queried by role and label, not by class name). Every component file gets a test, including large presentational ones such as `FigureAvatar`.
-- Integration tests (Vitest): route handlers against a Postgres + pgvector test database (the Docker image locally, a GitHub Actions service container in CI), reset between test files.
+- Integration tests (Vitest): route handlers and database queries against a `postgres:16` test database (`DATABASE_URL_TEST` locally and a GitHub Actions service container in CI), reset between test files.
 - E2E tests (Playwright): sign in, start a roundtable, save to notebook.
-- Never call the real Claude or Voyage APIs in tests. Unit and integration tests mock `src/server/ai`; E2E tests run the app with `AI_PROVIDER=mock`, which returns fixture streams and embeddings.
+- Never call external AI APIs anywhere in the app or tests. Unit and integration tests use seeded/fixture answer-bank data and `src/server/fixtures` where needed; E2E tests run against the seeded database and stored SSE stream fixtures.
 - Test names describe behavior: `it("shows a retry button when the stream fails")`.
 - Coverage goal: 80% lines for `src/server` and `src/lib`.
+
+### 1.6 Shared Contracts
+
+- **Data model (`prisma/schema.prisma`)**:
+  - `User`: `id`, `email`, `passwordHash`, `role` (`USER` | `CURATOR` | `ADMIN`), `createdAt`
+  - `Figure`: `id`, `slug`, `name`, `field`, `era`, `bio`, `avatarKey`
+  - `Theme`: `id`, `slug`, `name`, `description` (suggested figures linked via `FigureTheme`)
+  - `FigureTheme`: join model linking `Figure` and `Theme`
+  - `Work`: `id`, `figureId`, `title`, `year`, `sourceUrl`, `publicDomainConfirmed`
+  - `Passage`: `id`, `workId`, `location`, `text`, `searchVector` (`Unsupported("tsvector")?`)
+  - `Answer`: `id`, `figureId`, `themeId`, `topicKeywords` (space-separated string), `body`, `searchVector` (`Unsupported("tsvector")?`)
+  - `AnswerPassage`: `answerId`, `passageId`, `explanation`, `order`
+  - `Roundtable`: `id`, `userId`, `question`, `themeId?`, `createdAt`
+  - `RoundtableAnswer`: `roundtableId`, `figureId`, `answerId?`, `status`
+  - `Flag`: `id`, `roundtableAnswerId`, `userId`, `reason`, `resolvedAt?`, `resolvedById?`
+  - `UsageLimit`: `role`, `dailyRoundtables`
+  - `AuditLog`: `id`, `actorId`, `action`, `targetId`, `before`, `after`, `createdAt`
+- **Seed content format (`prisma/seed/content/`)**: `figures.json`, `themes.json`, and one `<figure-slug>.json` per figure containing `works`, `passages`, and `answers` (each answer referencing passage keys with an `explanation`).
+- **Matching service (`src/server/matching/`)**: `matchAnswers({ question, figureIds, themeId? })` returns `{ figureId, answer | null, score }` per figure using `MATCH_THRESHOLD` (when `answer` is `null`, the UI renders the no-match notice instead of a quote).
+- **Server auth and limit helpers (`src/server/auth/`)**: `requireUser` and `requireRole` enforce authentication and role checks on the server, returning `401` when unauthenticated, `403` when the role is insufficient, and `429` when daily `UsageLimit` is exceeded.
 
 ---
 
@@ -118,7 +138,7 @@ Key patterns:
 
 - Location: `docs/prd.md`.
 - User stories are numbered US-1 to US-9. Every issue names the user story it comes from; read that story's acceptance criteria before coding.
-- Content policy from the PRD is mandatory: passages are shown verbatim from uploaded public-domain works, never generated, and the UI states that answers are AI interpretations.
+- Content policy from the PRD is mandatory: passages are shown verbatim from uploaded public-domain works, never generated, and the UI states that answers are curated interpretations written in the figure's voice.
 
 ### 2.2 Mockup
 
@@ -213,10 +233,7 @@ Implement features so they fit these flows:
 - A TODO must reference an issue: `// TODO(#12): handle retry backoff`. No bare TODOs.
 
 ### 3.6 Git Operations by AI Agents
-<!-- Added in v2: in testing, the agent tried to run git add on its own. -->
-- AI agents do not run git add, commit, push, merge, rebase, or checkout.
-- When work is ready, the agent stops, lists the changed files, and proposes a commit message in the section 3.3 format.
-- The human partner reviews the changes and makes the commit.
+- Agents may run git and gh commands (branch, add, commit, push, open PRs) when asked. Commits and pushes use the user's own git identity. Never add Co-authored-by trailers, 'Generated with' lines, or any AI attribution to commits, PRs, or comments. Commit failing tests before implementation. Never merge without the partner's GitHub approval. Never force-push to main or touch test/4-* branches.
 
 ---
 
@@ -235,25 +252,25 @@ Don't:
 
 - Don't fetch data or call Prisma inside client components.
 - Don't duplicate business rules in the UI; the server is the source of truth.
-- Don't add a new folder pattern that isn't in section 1.3. In particular, don't create `src/data` or `__tests__` folders: mock data goes in `src/server/ai/fixtures`, and tests sit next to the file they test.
-- Don't generate text and present it as an original passage.
+- Don't add a new folder pattern that isn't in section 1.3. In particular, don't create `src/data` or `__tests__` folders: mock data goes in `src/server/fixtures`, and tests sit next to the file they test.
+- Don't generate text and present it as an original passage, and never call external AI APIs at runtime.
 
 ### 4.2 Dependencies
 
-- Prefer: `zod`, `jose`, `bcryptjs`, `@anthropic-ai/sdk`, `voyageai`, `server-only`, Prisma, React Testing Library, native `fetch`, `Intl` for dates.
-- Avoid: UI kits (MUI, Chakra, Bootstrap), `axios`, `moment`, Redux.
+- Prefer: `zod`, `jose`, `bcryptjs`, `server-only`, Prisma, React Testing Library, native `fetch`, `Intl` for dates.
+- Avoid: UI kits (MUI, Chakra, Bootstrap), `axios`, `moment`, Redux. Never add AI SDK packages (`@anthropic-ai/sdk`, `voyageai`, `openai`, etc.).
 - Ask before adding any dependency not listed here, and state why it is needed.
 
 ### 4.3 Security
 
 - Secrets live only in environment variables, validated with zod at startup. Never commit `.env*` files.
-- Every module in `src/server` except `src/server/ai/fixtures` starts with `import "server-only"`, so the build fails if client code imports it. Vitest aliases `server-only` to an empty module so tests can import these files.
-- The Claude and Voyage API keys are server only; never prefix them with `NEXT_PUBLIC_`.
+- Every module in `src/server` except `src/server/fixtures` starts with `import "server-only"`, so the build fails if client code imports it. Vitest aliases `server-only` to an empty module so tests can import these files.
+- Server-only secrets (`DATABASE_URL`, `JWT_SECRET`) must never be prefixed with `NEXT_PUBLIC_`.
 - Validate every request with zod; return 400 on invalid input.
 - Enforce roles on the server for every curator and admin route; return 403 otherwise.
 - Services always filter user data by the signed-in `userId`. Requests for another user's roundtable or notebook item return 404, not 403, so they do not reveal that it exists.
 - Auth cookies are `httpOnly`, `Secure`, `SameSite=Lax`.
-- Use Prisma's query API. The only raw SQL is `prisma.$queryRaw` tagged templates in `src/server/retrieval` (parameterized). Never use `$queryRawUnsafe` or `$executeRawUnsafe`.
+- Use Prisma's query API. The only raw SQL is `prisma.$queryRaw` tagged templates in `src/server/matching` (parameterized). Never use `$queryRawUnsafe` or `$executeRawUnsafe`.
 - Never log passwords, tokens, or API keys.
 - Enforce the daily roundtable limit on the server; return 429 with the reset time.
 
