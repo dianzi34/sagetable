@@ -21,8 +21,22 @@ test.describe("Roundtable page", () => {
       await expect(
         card.getByText(`Curated interpretation in ${name}'s voice`),
       ).toBeVisible();
-      await expect(card.getByRole("blockquote").first()).toBeVisible();
+      await expect(card.getByRole("blockquote")).toHaveCount(1);
     }
+
+    const twainCard = page
+      .getByRole("article")
+      .filter({ has: page.getByRole("heading", { name: "Mark Twain" }) });
+    await twainCard
+      .getByRole("button", { name: "Show 1 more passage" })
+      .click();
+    await expect(twainCard.getByRole("blockquote")).toHaveCount(2);
+
+    await expect(
+      page.getByText(
+        "No-match example (when no curated answer passes the match threshold):",
+      ),
+    ).toBeVisible();
 
     const kellerCard = page
       .getByRole("article")
@@ -32,5 +46,11 @@ test.describe("Roundtable page", () => {
       kellerCard.getByText("Helen Keller hasn't written about this yet."),
     ).toBeVisible();
     await expect(kellerCard.getByRole("blockquote")).toHaveCount(0);
+    await expect(
+      kellerCard.getByText(/Curated interpretation/i),
+    ).toHaveCount(0);
+    await expect(kellerCard.getByRole("button", { name: /flag/i })).toHaveCount(
+      0,
+    );
   });
 });
