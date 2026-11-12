@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  CURATOR
+  ADMIN
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  passwordHash  String
+  role          Role         @default(USER)
+  createdAt     DateTime     @default(now())
+  roundtables   Roundtable[]
+  reportedFlags Flag[]       @relation("FlagReporter")
+  resolvedFlags Flag[]       @relation("FlagResolver")
+  auditLogs     AuditLog[]
+}
+
+model Figure {
+  id               String             @id @default(cuid())
+  slug             String             @unique
+  name             String
+  field            String
+  era              String
+  bio              String
+  avatarKey        String
+  themes           FigureTheme[]
+  works            Work[]
+  answers          Answer[]
+  roundtableAnswers RoundtableAnswer[]
+}
+
+model Theme {
+  id                 String        @id @default(cuid())
+  slug               String        @unique
+  name               String
+  description        String
+  suggestedQuestions String[]      @default([])
+  figures            FigureTheme[]
+  answers            Answer[]
+  roundtables        Roundtable[]
+}
+
+model FigureTheme {
+  figureId String
+  themeId  String
+  order    Int    @default(0)
+  figure   Figure @relation(fields: [figureId], references: [id], onDelete: Cascade)
+  theme    Theme  @relation(fields: [themeId], references: [id], onDelete: Cascade)
+
+  @@id([figureId, themeId])
+}
+
+model Work {
+  id                    String    @id @default(cuid())
+  figureId              String
+  title                 String
+  year                  Int
+  sourceUrl             String
+  publicDomainConfirmed Boolean   @default(false)
+  figure                Figure    @relation(fields: [figureId], references: [id], onDelete: Cascade)
+  passages              Passage[]
+
+  @@unique([figureId, title])
+}
+
+model Passage {
+  id             String                   @id @default(cuid())
+  workId         String
+  location       String
+  text           String
+  searchVector   Unsupported("tsvector")? @default(dbgenerated())
+  work           Work                     @relation(fields: [workId], references: [id], onDelete: Cascade)
+  answerPassages AnswerPassage[]
+
+  @@index([searchVector], type: Gin)
+}
+
+model Answer {
+  id                String                   @id @default(cuid())
+  figureId          String
+  themeId           String
+  topicKeywords     String
+  body              String
+  searchVector      Unsupported("tsvector")? @default(dbgenerated())
+  figure            Figure                   @relation(fields: [figureId], references: [id], onDelete: Cascade)
+  theme             Theme                    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  passages          AnswerPassage[]
+  roundtableAnswers RoundtableAnswer[]
+
+  @@index([searchVector], type: Gin)
+}
+
+model AnswerPassage {
+  answerId    String
+  passageId   String
+  explanation String
+  order       Int     @default(0)
+  answer      Answer  @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  passage     Passage @relation(fields: [passageId], references: [id], onDelete: Cascade)
+
+  @@id([answerId, passageId])
+}
+
+model Roundtable {
+  id        String             @id @default(cuid())
+  userId    String
+  question  String
+  themeId   String?
+  createdAt DateTime           @default(now())
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme     Theme?             @relation(fields: [themeId], references: [id], onDelete: SetNull)
+  answers   RoundtableAnswer[]
+}
+
+model RoundtableAnswer {
+  id           String     @id @default(cuid())
+  roundtableId String
+  figureId     String
+  answerId     String?
+  status       String     @default("pending")
+  roundtable   Roundtable @relation(fields: [roundtableId], references: [id], onDelete: Cascade)
+  figure       Figure     @relation(fields: [figureId], references: [id], onDelete: Cascade)
+  answer       Answer?    @relation(fields: [answerId], references: [id], onDelete: SetNull)
+  flags        Flag[]
+
+  @@unique([roundtableId, figureId])
+}
+
+model Flag {
+  id                 String           @id @default(cuid())
+  roundtableAnswerId String
+  userId             String
+  reason             String
+  createdAt          DateTime         @default(now())
+  resolvedAt         DateTime?
+  resolvedById       String?
+  roundtableAnswer   RoundtableAnswer @relation(fields: [roundtableAnswerId], references: [id], onDelete: Cascade)
+  user               User             @relation("FlagReporter", fields: [userId], references: [id], onDelete: Cascade)
+  resolvedBy         User?            @relation("FlagResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+}
+
+model UsageLimit {
+  role             Role @id
+  dailyRoundtables Int
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  action    String
+  targetId  String
+  before    Json?
+  after     Json?
+  createdAt DateTime @default(now())
+  actor     User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
+}

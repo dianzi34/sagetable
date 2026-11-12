@@ -19,6 +19,7 @@ export default defineConfig(({ mode }) => {
     },
     test: {
       environment: "node",
+      globalSetup: ["./vitest.integration.setup.ts"],
       include: ["src/**/*.integration.test.{ts,tsx}"],
       exclude: ["node_modules", ".next", "e2e"],
       fileParallelism: false,
