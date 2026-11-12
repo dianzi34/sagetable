@@ -12,6 +12,9 @@ describe("PlainExplanation", () => {
     expect(
       screen.getByRole("heading", { name: "In plain English" }),
     ).toBeInTheDocument();
-    expect(screen.getByText(explanation)).toBeInTheDocument();
+    const explanationEl = screen.getByText(explanation);
+    expect(explanationEl).toBeInTheDocument();
+    expect(explanationEl).toHaveClass("text-ink");
+    expect(explanationEl).not.toHaveClass("text-muted");
   });
 });

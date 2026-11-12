@@ -1,18 +1,11 @@
 import type { CSSProperties, ReactElement } from "react";
+import { getFigureAccent } from "@/lib/figures";
 import type { AnswerCardData } from "@/types/roundtable";
+import { ExtraPassages } from "./ExtraPassages";
 import { FigureAvatar } from "./FigureAvatar";
 import { FlagButton } from "./FlagButton";
 import { NoMatchNotice } from "./NoMatchNotice";
 import { PassageBlock } from "./PassageBlock";
-import { PlainExplanation } from "./PlainExplanation";
-
-const FIGURE_ACCENTS: Record<string, string> = {
-  "mark-twain": "var(--accent-twain)",
-  "helen-keller": "var(--accent-keller)",
-  "marie-curie": "var(--accent-curie)",
-  "vincent-van-gogh": "var(--accent-van-gogh)",
-  "leonardo-da-vinci": "var(--accent-da-vinci)",
-};
 
 export interface AnswerCardProps {
   data: AnswerCardData;
@@ -27,7 +20,8 @@ export function AnswerCard({
   onFlag,
 }: Readonly<AnswerCardProps>): ReactElement {
   const { figure, answer } = data;
-  const accent = FIGURE_ACCENTS[figure.slug] ?? "var(--blue)";
+  const accent = getFigureAccent(figure.slug);
+  const [firstPassage, ...extraPassages] = answer?.passages ?? [];
 
   return (
     <article
@@ -47,30 +41,24 @@ export function AnswerCard({
       </div>
 
       {answer === null ? (
-        <>
-          <NoMatchNotice figureName={figure.name} />
-          <p className="m-0 mt-auto pt-3 border-t-[1.5px] border-dashed border-line text-xs text-muted">
-            Curated interpretation in {figure.name}&apos;s voice
-          </p>
-        </>
+        <NoMatchNotice figureName={figure.name} />
       ) : (
         <>
           <p className="m-0 text-ink leading-relaxed">{answer.body}</p>
 
-          {answer.passages.map((passage) => (
-            <div
-              key={`${passage.workTitle}-${passage.location}`}
-              className="flex flex-col gap-3"
-            >
-              <PassageBlock
-                text={passage.text}
-                workTitle={passage.workTitle}
-                workYear={passage.workYear}
-                location={passage.location}
-              />
-              <PlainExplanation explanation={passage.explanation} />
-            </div>
-          ))}
+          {firstPassage ? (
+            <PassageBlock
+              text={firstPassage.text}
+              workTitle={firstPassage.workTitle}
+              workYear={firstPassage.workYear}
+              location={firstPassage.location}
+              explanation={firstPassage.explanation}
+            />
+          ) : null}
+
+          {extraPassages.length > 0 ? (
+            <ExtraPassages passages={extraPassages} />
+          ) : null}
 
           <div className="mt-auto pt-3 border-t-[1.5px] border-dashed border-line flex flex-wrap items-center justify-between gap-2">
             <p className="m-0 text-xs text-muted">

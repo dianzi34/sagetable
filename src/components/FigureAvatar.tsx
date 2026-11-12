@@ -1,10 +1,12 @@
 import { useId, type ReactElement } from "react";
+import { getFigureAccent } from "@/lib/figures";
 
 export interface FigureAvatarProps {
   slug: string;
   name: string;
   size?: number;
   className?: string;
+  accentColor?: string;
 }
 
 function renderPortrait(slug: string): ReactElement {
@@ -251,9 +253,11 @@ export function FigureAvatar({
   name,
   size = 56,
   className = "w-14 h-14 shrink-0",
+  accentColor,
 }: Readonly<FigureAvatarProps>): ReactElement {
   const rawId = useId();
   const filterId = `avatar-wobble-${rawId.replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const ringStroke = accentColor ?? `var(--figure-accent, ${getFigureAccent(slug)})`;
 
   return (
     <svg
@@ -280,8 +284,8 @@ export function FigureAvatar({
         cy="50"
         r="47"
         fill="var(--paper)"
-        stroke="var(--line)"
-        strokeWidth="2"
+        stroke={ringStroke}
+        strokeWidth="3.5"
       />
       <g filter={`url(#${filterId})`}>{renderPortrait(slug)}</g>
     </svg>

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { AnswerCardData } from "@/types/roundtable";
 import { AnswerCard } from "./AnswerCard";
@@ -33,6 +33,23 @@ const MATCHED_CARD: AnswerCardData = {
   },
 };
 
+const THREE_PASSAGES_CARD: AnswerCardData = {
+  figure: MATCHED_CARD.figure,
+  answer: {
+    body: MATCHED_CARD.answer!.body,
+    passages: [
+      ...MATCHED_CARD.answer!.passages,
+      {
+        text: "Keep away from people who try to belittle your ambitions.",
+        workTitle: "Collected Maxims",
+        workYear: 1900,
+        location: "Note 3",
+        explanation: "Surround yourself with people who encourage real growth.",
+      },
+    ],
+  },
+};
+
 const NO_MATCH_CARD: AnswerCardData = {
   figure: {
     slug: "helen-keller",
@@ -44,7 +61,7 @@ const NO_MATCH_CARD: AnswerCardData = {
 };
 
 describe("AnswerCard", () => {
-  it("renders figure name, answer body, every passage and explanation, and the curated-interpretation label", () => {
+  it("shows only the first passage by default and reveals the second when 'Show 1 more passage' is clicked", () => {
     render(<AnswerCard data={MATCHED_CARD} />);
 
     expect(
@@ -55,26 +72,58 @@ describe("AnswerCard", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(MATCHED_CARD.answer!.body)).toBeInTheDocument();
 
-    const blockquotes = screen.getAllByRole("blockquote");
-    expect(blockquotes).toHaveLength(2);
+    const [firstPassage, secondPassage] = MATCHED_CARD.answer!.passages;
 
-    for (const passage of MATCHED_CARD.answer!.passages) {
-      expect(screen.getByText(passage.text)).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          `${passage.workTitle}, ${passage.workYear}, ${passage.location}`,
-        ),
-      ).toBeInTheDocument();
-      expect(screen.getByText(passage.explanation)).toBeInTheDocument();
-    }
+    expect(screen.getAllByRole("blockquote")).toHaveLength(1);
+    expect(screen.getByText(firstPassage.text)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        `${firstPassage.workTitle}, ${firstPassage.workYear}, ${firstPassage.location}`,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(firstPassage.explanation)).toBeInTheDocument();
+
+    expect(screen.queryByText(secondPassage.text)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(secondPassage.explanation),
+    ).not.toBeInTheDocument();
 
     expect(
       screen.getByText("Curated interpretation in Mark Twain's voice"),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /flag/i })).toBeInTheDocument();
+
+    const showMoreButton = screen.getByRole("button", {
+      name: "Show 1 more passage",
+    });
+    fireEvent.click(showMoreButton);
+
+    expect(screen.getAllByRole("blockquote")).toHaveLength(2);
+    expect(screen.getByText(secondPassage.text)).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        `${secondPassage.workTitle}, ${secondPassage.workYear}, ${secondPassage.location}`,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText(secondPassage.explanation)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Show 1 more passage" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("renders '<Name> hasn't written about this yet.' and no blockquote when answer is null", () => {
+  it("labels multiple collapsed passages as 'Show N more passages'", () => {
+    render(<AnswerCard data={THREE_PASSAGES_CARD} />);
+
+    expect(screen.getAllByRole("blockquote")).toHaveLength(1);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Show 2 more passages" }),
+    );
+
+    expect(screen.getAllByRole("blockquote")).toHaveLength(3);
+  });
+
+  it("renders only the no-match notice when answer is null, with no curated-interpretation label and no Flag button", () => {
     render(<AnswerCard data={NO_MATCH_CARD} />);
 
     expect(
@@ -84,5 +133,11 @@ describe("AnswerCard", () => {
       screen.getByText("Helen Keller hasn't written about this yet."),
     ).toBeInTheDocument();
     expect(screen.queryByRole("blockquote")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/Curated interpretation/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /flag/i }),
+    ).not.toBeInTheDocument();
   });
 });
