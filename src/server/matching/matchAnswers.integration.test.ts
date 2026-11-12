@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { loadSeedContent } from "@/lib/seedContent";
 import { createTestPrismaClient, resetTestDatabase } from "../testDb";
 import { MATCH_THRESHOLD, matchAnswers } from "./matchAnswers";
 
@@ -455,5 +456,120 @@ describe("matchAnswers PostgreSQL integration", () => {
 
     expect(results[0]?.answer?.id).toBe(keywordAnswer.id);
     expect(results[0]?.score).toBeGreaterThanOrEqual(MATCH_THRESHOLD);
+  });
+
+  it("matches answers via linked Passage.searchVector phrasing", async () => {
+    const ids = await seedMatchingFixtures(prisma);
+
+    const results = await matchAnswers(
+      {
+        question: "Mississippi River from New Orleans to St. Louis",
+        figureIds: [ids.twainId],
+      },
+      prisma,
+    );
+
+    expect(results[0]?.score).toBeGreaterThanOrEqual(MATCH_THRESHOLD);
+    expect(results[0]?.answer?.id).toBe(ids.twainCareerAnswerId);
+  });
+
+  it("matches every suggested question in the curated seed dataset to its theme across all figures", async () => {
+    const content = loadSeedContent();
+    const figureIdsBySlug = new Map<string, string>();
+    const themeIdsBySlug = new Map<string, string>();
+
+    for (const fig of content.figures) {
+      const created = await prisma.figure.create({
+        data: {
+          slug: fig.slug,
+          name: fig.name,
+          field: fig.field,
+          era: fig.era,
+          bio: fig.bio,
+          avatarKey: fig.slug,
+        },
+      });
+      figureIdsBySlug.set(fig.slug, created.id);
+    }
+
+    for (const theme of content.themes) {
+      const created = await prisma.theme.create({
+        data: {
+          slug: theme.slug,
+          name: theme.name,
+          description: theme.description,
+          suggestedQuestions: theme.suggestedQuestions,
+        },
+      });
+      themeIdsBySlug.set(theme.slug, created.id);
+    }
+
+    for (const figContent of content.figureContents) {
+      const figureId = figureIdsBySlug.get(figContent.figure)!;
+      const workIdsByKey = new Map<string, string>();
+      const passageIdsByKey = new Map<string, string>();
+
+      for (const work of figContent.works) {
+        const createdWork = await prisma.work.create({
+          data: {
+            figureId,
+            title: work.title,
+            year: work.year,
+            sourceUrl: work.sourceUrl,
+            publicDomainConfirmed: true,
+          },
+        });
+        workIdsByKey.set(work.key, createdWork.id);
+      }
+
+      for (const passage of figContent.passages) {
+        const createdPassage = await prisma.passage.create({
+          data: {
+            workId: workIdsByKey.get(passage.work)!,
+            location: passage.location,
+            text: passage.text,
+          },
+        });
+        passageIdsByKey.set(passage.key, createdPassage.id);
+      }
+
+      for (const answer of figContent.answers) {
+        const createdAnswer = await prisma.answer.create({
+          data: {
+            figureId,
+            themeId: themeIdsBySlug.get(answer.theme)!,
+            topicKeywords: answer.topicKeywords.join(" "),
+            body: answer.body,
+          },
+        });
+        await prisma.answerPassage.createMany({
+          data: answer.passages.map((p, index) => ({
+            answerId: createdAnswer.id,
+            passageId: passageIdsByKey.get(p.passage)!,
+            explanation: p.explanation,
+            order: index,
+          })),
+        });
+      }
+    }
+
+    const allFigureIds = Array.from(figureIdsBySlug.values());
+
+    for (const theme of content.themes) {
+      const themeId = themeIdsBySlug.get(theme.slug)!;
+      for (const question of theme.suggestedQuestions) {
+        const matches = await matchAnswers(
+          { question, figureIds: allFigureIds, themeId },
+          prisma,
+        );
+        expect(matches).toHaveLength(allFigureIds.length);
+        for (const match of matches) {
+          expect(match.score).toBeGreaterThanOrEqual(MATCH_THRESHOLD);
+          expect(match.answer?.themeId).toBe(themeId);
+          expect(match.answer?.passages.length).toBeGreaterThanOrEqual(1);
+          expect(match.answer?.passages.length).toBeLessThanOrEqual(2);
+        }
+      }
+    }
   });
 });

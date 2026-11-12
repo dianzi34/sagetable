@@ -2,6 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import type { PrismaClient } from "@prisma/client";
 import { describe, expect, it, vi } from "vitest";
+import {
+  MATCH_THRESHOLD as INDEX_MATCH_THRESHOLD,
+  matchAnswers as indexMatchAnswers,
+} from "./index";
 import { MATCH_THRESHOLD, matchAnswers } from "./matchAnswers";
 
 interface FakeRankedRow {
@@ -70,12 +74,17 @@ describe("matchAnswers (unit)", () => {
     expect(findManyMock).not.toHaveBeenCalled();
   });
 
+  it("re-exports MATCH_THRESHOLD and matchAnswers from index", () => {
+    expect(INDEX_MATCH_THRESHOLD).toBe(MATCH_THRESHOLD);
+    expect(indexMatchAnswers).toBe(matchAnswers);
+  });
+
   it("returns a no-match result per figure when the question has no searchable terms", async () => {
     const { db, queryRawMock } = createFakeDb([]);
 
     const results = await matchAnswers(
       {
-        question: "  ... ???   the and or  ",
+        question: "  ... ???   the and or I can't won't  ",
         figureIds: ["fig-twain", "fig-curie"],
         themeId: "theme-career",
       },
