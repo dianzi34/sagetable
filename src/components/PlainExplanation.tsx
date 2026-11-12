@@ -12,10 +12,10 @@ export function PlainExplanation({
 }: Readonly<PlainExplanationProps>): ReactElement {
   return (
     <div className="space-y-1">
-      <h3 className="m-0 text-[0.95rem] font-semibold text-ink">
+      <h3 className="m-0 text-xs font-semibold text-muted">
         In plain English
       </h3>
-      <p className="m-0 text-muted leading-relaxed">{explanation}</p>
+      <p className="m-0 text-ink leading-relaxed">{explanation}</p>
     </div>
   );
 }

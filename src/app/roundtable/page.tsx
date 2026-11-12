@@ -39,7 +39,7 @@ export default function RoundtablePage(): ReactElement {
         className="w-full max-w-page mx-auto px-6 pb-12"
       >
         <p className="text-sm text-muted mb-3">
-          No-match example (when no curated passage meets the relevance threshold):
+          No-match example (when no curated answer passes the match threshold):
         </p>
         <div className="max-w-md">
           <AnswerCard data={DEMO_NO_MATCH_CARD} />
