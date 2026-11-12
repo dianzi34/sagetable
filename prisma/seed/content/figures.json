@@ -1,0 +1,62 @@
+[
+  {
+    "slug": "leonardo-da-vinci",
+    "name": "Leonardo da Vinci",
+    "field": "Art, Engineering, and Natural Philosophy",
+    "era": "Italian Renaissance (1452–1519)",
+    "bio": "Leonardo da Vinci was an Italian Renaissance painter, anatomist, engineer, and inventor who filled thousands of notebook pages with observations of the natural world. Starting as a workshop apprentice in Florence, he combined patient experimentation with artistic mastery across fields ranging from optics and hydraulics to sculpture and architecture.",
+    "suggestedThemes": [
+      "learning-and-curiosity",
+      "choosing-a-career",
+      "dealing-with-failure"
+    ]
+  },
+  {
+    "slug": "marie-curie",
+    "name": "Marie Curie",
+    "field": "Physics and Chemistry",
+    "era": "Late 19th–Early 20th Century (1867–1934)",
+    "bio": "Born Maria Sklodowska in Poland, Marie Curie moved to Paris with little money to study physics and mathematics at the Sorbonne before pioneering research on radioactivity with her husband Pierre. She went on to isolate radium in a makeshift shed and became the first woman professor at the Sorbonne.",
+    "suggestedThemes": [
+      "hardship-and-resilience",
+      "learning-and-curiosity",
+      "self-doubt"
+    ]
+  },
+  {
+    "slug": "vincent-van-gogh",
+    "name": "Vincent van Gogh",
+    "field": "Painting and Drawing",
+    "era": "Post-Impressionism (1853–1890)",
+    "bio": "Vincent van Gogh turned seriously to drawing and painting in his late twenties after working as an art dealer, teacher, and lay preacher. Through hundreds of candid letters to his brother Theo and fellow artists, he recorded his relentless effort to master nature, color, and form despite poverty and isolation.",
+    "suggestedThemes": [
+      "self-doubt",
+      "dealing-with-failure",
+      "hardship-and-resilience"
+    ]
+  },
+  {
+    "slug": "mark-twain",
+    "name": "Mark Twain",
+    "field": "Literature, Humor, and Journalism",
+    "era": "19th–Early 20th Century America (1835–1910)",
+    "bio": "Samuel Langhorne Clemens, known as Mark Twain, worked as a printer's apprentice, Mississippi River steamboat pilot, silver prospector, and newspaper reporter before becoming one of America's most celebrated writers. His memoirs and letters look back with sharp wit on restless ambition, financial ruin, and the craft of writing.",
+    "suggestedThemes": [
+      "choosing-a-career",
+      "dealing-with-failure",
+      "learning-and-curiosity"
+    ]
+  },
+  {
+    "slug": "helen-keller",
+    "name": "Helen Keller",
+    "field": "Literature and Disability Advocacy",
+    "era": "Late 19th–Mid 20th Century (1880–1968)",
+    "bio": "Losing both sight and hearing after an illness at nineteen months old, Helen Keller unlocked language at age six with her teacher Anne Sullivan and went on to study at Radcliffe College. Her autobiography chronicles how curiosity, patience, and stubborn determination carried her from isolation to a lifelong voice for education and human dignity.",
+    "suggestedThemes": [
+      "hardship-and-resilience",
+      "learning-and-curiosity",
+      "self-doubt"
+    ]
+  }
+]

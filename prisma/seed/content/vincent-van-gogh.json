@@ -1,0 +1,160 @@
+{
+  "figure": "vincent-van-gogh",
+  "works": [
+    {
+      "key": "letters-post-impressionist",
+      "title": "The Letters of a Post-Impressionist: Being the Familiar Correspondence of Vincent Van Gogh",
+      "year": 1913,
+      "sourceUrl": "https://www.gutenberg.org/ebooks/40393"
+    }
+  ],
+  "passages": [
+    {
+      "key": "vangogh-career-1",
+      "work": "letters-post-impressionist",
+      "location": "Letters to His Brother, Extract 3",
+      "text": "Sooner or later a love of Nature always meets with response from people interested in Art. Therefore it is the painter's duty to become absorbed in Nature, to exercise all his intelligence, and put all his feeling into his work so that it may be comprehensible to others. But to work with a view to sell is, in my opinion, not the proper way, neither should we consider the taste of the art-lover--the great painters never did so."
+    },
+    {
+      "key": "vangogh-failure-1",
+      "work": "letters-post-impressionist",
+      "location": "Letters to His Brother, Extract 6 (Letter to Theo)",
+      "text": "I do not know the future, Theo; but I know the eternal law of change. Think how different things were ten years ago--the circumstances of everyday life, the attitude of men's minds, in fact everything; and ten years hence many other things will have changed also. But fancy having created something lasting! And one does not repent so soon for having created something. The busier I am the better; I prefer a piece of work that is a failure to inactivity."
+    },
+    {
+      "key": "vangogh-doubt-1",
+      "work": "letters-post-impressionist",
+      "location": "Letters to His Brother, Extract 2",
+      "text": "For what am I in the eyes of most people? A nonentity, or an oddity, or a disagreeable man, some one who neither has nor ever will have any place in society--in short something less than the least. Well, granting that this is so, I should like to show by my work what the heart of such a nonentity, of such an insignificant man, conceals."
+    },
+    {
+      "key": "vangogh-learning-1",
+      "work": "letters-post-impressionist",
+      "location": "Letters to His Brother, Extract 2",
+      "text": "One should not pay so much heed to the teaching of painters as to the teaching of Nature. I can understand better now than I did six months ago that Mauve should have been able to say: \"Do not speak to me about Dupre; speak to me rather about the edge of your ditch, or things of that sort.\" It certainly sounds strange, but it is absolutely right."
+    },
+    {
+      "key": "vangogh-hardship-2",
+      "work": "letters-post-impressionist",
+      "location": "More Letters to His Brother, Extract 7",
+      "text": "And even if I feel sad about the expenses being so heavy and the pictures not being any good, I do not despair, for I am certain that my long sojourn in the south will be successful. Here I see and learn many new things, and if I am gentle with my body, it will not play me a bad turn."
+    }
+  ],
+  "answers": [
+    {
+      "theme": "choosing-a-career",
+      "topicKeywords": [
+        "major",
+        "career",
+        "work",
+        "love",
+        "job",
+        "calling",
+        "interests",
+        "pays",
+        "art",
+        "painting",
+        "craft"
+      ],
+      "body": "If you picked the wrong major, don't stay stuck in it. Before I ever drew a field or a face, I failed at an art shop, tried teaching boys, and flamed out as a preacher. At twenty-seven I picked up a pencil and threw my whole heart into painting real life instead of trying to please buyers. Work that chases quick pay feels hollow fast. Care deeply about what you make, and start fresh from there.",
+      "passages": [
+        {
+          "passage": "vangogh-career-1",
+          "explanation": "Chasing sales ruins art, while throwing honest feeling into nature eventually touches people. Focus on making honest work you care about rather than guessing what buys approval."
+        }
+      ]
+    },
+    {
+      "theme": "dealing-with-failure",
+      "topicKeywords": [
+        "failed",
+        "exam",
+        "giving",
+        "up",
+        "failure",
+        "mistake",
+        "rejection",
+        "trying",
+        "wrong",
+        "inactivity",
+        "painting"
+      ],
+      "body": "Making bad work still beats sitting still out of fear. In my first years drawing farm workers, I spoiled piles of paper and worried I would never paint well. Still, each flop showed my hands what was off in a way overthinking never could. As I wrote my brother Theo, \"I prefer a piece of work that is a failure to inactivity.\" Pick your tools back up after a bad day, fix one thing, and keep going.",
+      "passages": [
+        {
+          "passage": "vangogh-failure-1",
+          "explanation": "Everything changes over ten years, so creating something—even a flawed piece—beats sitting idle. Put your hands back on the work today instead of waiting safely on the sidelines."
+        }
+      ]
+    },
+    {
+      "theme": "self-doubt",
+      "topicKeywords": [
+        "smarter",
+        "doubting",
+        "doubt",
+        "self",
+        "behind",
+        "ability",
+        "critics",
+        "share",
+        "work",
+        "oddity",
+        "art"
+      ],
+      "body": "You don't need to look smooth or important to do real work. For years I felt like an awkward oddball with worn boots, no money, and no place beside polite, clever people. So I stopped trying to fit their mold and told my brother Theo I wanted my art to speak for such a nobody. Trust what moves your heart when self-doubt hits. Show your truth through your work instead of keeping score.",
+      "passages": [
+        {
+          "passage": "vangogh-doubt-1",
+          "explanation": "Even if others write you off as an oddity, your craft can carry what lives inside you. Quiet self-doubt by putting care into honest work that shows who you are."
+        }
+      ]
+    },
+    {
+      "theme": "learning-and-curiosity",
+      "topicKeywords": [
+        "curious",
+        "curiosity",
+        "studying",
+        "boring",
+        "learn",
+        "subject",
+        "patient",
+        "shortcuts",
+        "nature",
+        "observation",
+        "art"
+      ],
+      "body": "Real learning dies when you only copy trendy experts instead of looking at real life. When I trained under a Dutch painter named Mauve, I wanted to brag about famous museum artists. He cut me off and told me to stop talking about big names and go study the edge of my own ditch. Skip fancy buzzwords today. Stare closely at one real thing in front of you and ask how it works.",
+      "passages": [
+        {
+          "passage": "vangogh-learning-1",
+          "explanation": "Mauve reminded me that studying a real ditch beats reciting famous painters' names. Go straight to real-world examples instead of only memorizing textbook labels."
+        }
+      ]
+    },
+    {
+      "theme": "hardship-and-resilience",
+      "topicKeywords": [
+        "money",
+        "hard",
+        "keep",
+        "going",
+        "hardship",
+        "resilience",
+        "stress",
+        "goals",
+        "forward",
+        "expenses",
+        "health"
+      ],
+      "body": "Even when money runs thin, you can keep moving if you guard your health and refuse to quit. Down in southern France, I often got by on coffee and bread while paint bills grew fast and my pictures didn't sell. I wrote to Theo about how heavy those costs felt—yet I knew my eyes were growing sharper every week. Spend carefully on what feeds your main goal, get real rest, and keep going.",
+      "passages": [
+        {
+          "passage": "vangogh-hardship-2",
+          "explanation": "Despite heavy expenses and weak paintings in southern France, I refused despair and reminded myself to care for my health. Hard times require protecting your body so your effort can last."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "figure": "mark-twain",
+  "works": [
+    {
+      "key": "life-on-the-mississippi",
+      "title": "Life on the Mississippi",
+      "year": 1883,
+      "sourceUrl": "https://www.gutenberg.org/ebooks/245"
+    },
+    {
+      "key": "roughing-it",
+      "title": "Roughing It",
+      "year": 1872,
+      "sourceUrl": "https://www.gutenberg.org/ebooks/3177"
+    },
+    {
+      "key": "mark-twains-letters",
+      "title": "Mark Twain's Letters — Complete (1853-1910)",
+      "year": 1917,
+      "sourceUrl": "https://www.gutenberg.org/ebooks/3199"
+    }
+  ],
+  "passages": [
+    {
+      "key": "twain-career-1",
+      "work": "life-on-the-mississippi",
+      "location": "Chapter 6: A Cub-Pilot's Experience",
+      "text": "He agreed to teach me the Mississippi River from New Orleans to St. Louis for five hundred dollars, payable out of the first wages I should receive after graduating. I entered upon the small enterprise of 'learning' twelve or thirteen hundred miles of the great Mississippi River with the easy confidence of my time of life. If I had really known what I was about to require of my faculties, I should not have had the courage to begin."
+    },
+    {
+      "key": "twain-career-2",
+      "work": "mark-twains-letters",
+      "location": "Vol. II, Ch. IX — Letter to the New York Society of California Pioneers (Oct. 11, 1869)",
+      "text": "I have been through the California mill, with all its “dips, spurs and angles, variations and sinuosities.” I have worked there at all the different trades and professions known to the catalogues. I have been everything, from a newspaper editor down to a cow-catcher on a locomotive, and I am encouraged to believe that if there had been a few more occupations to experiment on, I might have made a dazzling success at last, and found out what mysterious designs Providence had in creating me."
+    },
+    {
+      "key": "twain-failure-1",
+      "work": "roughing-it",
+      "location": "Chapter LVIII",
+      "text": "My hoarded stocks were not worth the paper they were printed on. I threw them all away. I, the cheerful idiot that had been squandering money like water, and thought myself beyond the reach of misfortune, had not now as much as fifty dollars when I gathered together my various debts and paid them. I removed from the hotel to a very private boarding house. I took a reporter’s berth and went to work."
+    },
+    {
+      "key": "twain-doubt-1",
+      "work": "life-on-the-mississippi",
+      "location": "Chapter 8: Perplexing Lessons",
+      "text": "When I came to myself again, I said-- 'When I get so that I can do that, I'll be able to raise the dead, and then I won't have to pilot a steamboat to make a living. I want to retire from this business. I want a slush-bucket and a brush; I'm only fit for a roustabout. I haven't got brains enough to be a pilot; and if I had I wouldn't have strength enough to carry them around, unless I went on crutches.'"
+    },
+    {
+      "key": "twain-learning-1",
+      "work": "life-on-the-mississippi",
+      "location": "Chapter 9: Continued Perplexities",
+      "text": "The face of the water, in time, became a wonderful book--a book that was a dead language to the uneducated passenger, but which told its mind to me without reserve, delivering its most cherished secrets as clearly as if it uttered them with a voice. And it was not a book to be read once and thrown aside, for it had a new story to tell every day."
+    },
+    {
+      "key": "twain-hardship-2",
+      "work": "mark-twains-letters",
+      "location": "Vol. IV, Ch. XXXVI — Fragment of Letter to H. H. Rogers (c. Dec. 1897)",
+      "text": "I throw up the sponge. I pull down the flag. Let us begin on the debts. I cannot bear the weight any longer. It totally unfits me for work. I have lost three entire months now. In that time I have begun twenty magazine articles and books--and flung every one of them aside in turn. The debts interfered every time, and took the spirit out of any work."
+    }
+  ],
+  "answers": [
+    {
+      "theme": "choosing-a-career",
+      "topicKeywords": [
+        "major",
+        "career",
+        "work",
+        "love",
+        "job",
+        "calling",
+        "interests",
+        "pays",
+        "pilot",
+        "printer",
+        "writing"
+      ],
+      "body": "Honestly, I didn't get my career right on the first try. I was a printer, then a riverboat pilot, then a pretty bad silver miner, and only after all that did I start writing. Piloting taught me one thing, though: you learn a river one bend at a time. So don't wait to choose perfectly. Pick something, notice what you love about it, and steer from there.",
+      "passages": [
+        {
+          "passage": "twain-career-1",
+          "explanation": "I signed up to memorize twelve hundred miles of river before realizing how hard it was. Sometimes a little blind nerve gets you started when overthinking would stall you."
+        },
+        {
+          "passage": "twain-career-2",
+          "explanation": "Joking about trying every job out West shows you don't need a straight path early on. Testing real work helps you cross off poor fits much faster."
+        }
+      ]
+    },
+    {
+      "theme": "dealing-with-failure",
+      "topicKeywords": [
+        "failed",
+        "exam",
+        "giving",
+        "up",
+        "failure",
+        "mistake",
+        "rejection",
+        "trying",
+        "wrong",
+        "mining",
+        "reporter"
+      ],
+      "body": "A big failure stings for a week, mostly because it pops your pride. In San Francisco, I lived at a fine hotel spending money like a king right until my mining stocks turned into worthless paper. Left with under fifty dollars after paying my debts, I moved to a cheap boarding house and took a plain newspaper job. Don't let one bombed test make you quit the game. Laugh at the spill, check what went wrong, and get back to work.",
+      "passages": [
+        {
+          "passage": "twain-failure-1",
+          "explanation": "Once my mining stocks crashed, swallowing pride and taking a newspaper job got me moving again. Bouncing back starts with simple daily work, not waiting around for easy luck."
+        }
+      ]
+    },
+    {
+      "theme": "self-doubt",
+      "topicKeywords": [
+        "smarter",
+        "doubting",
+        "doubt",
+        "self",
+        "behind",
+        "ability",
+        "critics",
+        "share",
+        "work",
+        "pilot",
+        "beginner"
+      ],
+      "body": "Feeling like the slowest person in the room just means you finally see how big the job is. During my first weeks learning to steer a steamboat, my teacher watched hidden river traps in the dark while my brain turned to mush. I swore I only had sense enough to grab a bucket and scrub decks. Every beginner feels lost beside a pro. Keep showing up anyway, because awkward weeks are just the price of getting good.",
+      "passages": [
+        {
+          "passage": "twain-doubt-1",
+          "explanation": "As a beginner river pilot, I joked I barely had brains enough to scrub decks. Feeling lost beside experts usually means you finally see the craft's real depth."
+        }
+      ]
+    },
+    {
+      "theme": "learning-and-curiosity",
+      "topicKeywords": [
+        "curious",
+        "curiosity",
+        "studying",
+        "boring",
+        "learn",
+        "subject",
+        "patient",
+        "shortcuts",
+        "river",
+        "reading",
+        "clues"
+      ],
+      "body": "A subject only looks boring before you learn its secret code. To boat tourists watching from chairs, the Mississippi River was just miles of flat brown water. Once my pilot taught me to read tiny ripples and shadows below, that same river turned into the best book I ever read. Stop skimming your notes like a tourist. Hunt for the hidden rules inside your subject, and even dull pages wake up.",
+      "passages": [
+        {
+          "passage": "twain-learning-1",
+          "explanation": "Dull river water became a thrilling living book once I learned how to read its clues. Hunt for the hidden rules inside any boring subject until it comes alive."
+        }
+      ]
+    },
+    {
+      "theme": "hardship-and-resilience",
+      "topicKeywords": [
+        "money",
+        "hard",
+        "keep",
+        "going",
+        "hardship",
+        "resilience",
+        "stress",
+        "goals",
+        "forward",
+        "debts",
+        "work"
+      ],
+      "body": "Money stress locks up your brain faster than hard work ever will. When my book business failed, heavy debts weighed on me, so I went on a lecture tour around the world. While waiting to settle up, the burden still ruined three months of writing, so I wrote my friend Henry Rogers, \"Let us begin on the debts.\" With the tour money coming in, we paid everyone back. Face money trouble head-on, make a real plan, and take one step today.",
+      "passages": [
+        {
+          "passage": "twain-hardship-2",
+          "explanation": "Even experienced writers freeze up under crushing debt until they tackle it directly. Facing money stress squarely with a simple plan frees your mind to get back to work."
+        }
+      ]
+    }
+  ]
+}
