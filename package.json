@@ -9,9 +9,14 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:e2e": "playwright test",
+    "db:migrate": "prisma migrate dev",
+    "db:reset": "prisma migrate reset",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.3",
     "next": "15.5.29",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -30,6 +35,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.29",
     "jsdom": "^26.1.0",
+    "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.7"
