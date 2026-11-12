@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { SignJWT } from "jose";
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";

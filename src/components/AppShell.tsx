@@ -1,14 +1,20 @@
 import Link from "next/link";
 import type { ReactElement, ReactNode } from "react";
+import type { SessionUser } from "@/types/auth";
+import { SignOutButton } from "./SignOutButton";
 
 interface AppShellProps {
   children: ReactNode;
+  user?: SessionUser | null;
 }
 
 /**
  * Shared page chrome with hand-drawn navigation header, main landmark, and footer note.
  */
-export function AppShell({ children }: Readonly<AppShellProps>): ReactElement {
+export function AppShell({
+  children,
+  user = null,
+}: Readonly<AppShellProps>): ReactElement {
   return (
     <div className="min-h-screen flex flex-col bg-paper text-ink font-sans">
       <a
@@ -40,19 +46,26 @@ export function AppShell({ children }: Readonly<AppShellProps>): ReactElement {
           <span>SageTable</span>
         </Link>
 
-        <nav aria-label="Primary" className="flex items-center gap-3">
+        <nav aria-label="Primary" className="flex flex-wrap items-center gap-3">
           <Link
             href="/themes"
             className="rounded-full border-[1.5px] border-line bg-paper px-4 py-1.5 text-sm font-medium text-ink shadow-pill no-underline hover:border-ink"
           >
             Roundtable
           </Link>
-          <Link
-            href="/sign-in"
-            className="rounded-full border-[1.5px] border-ink bg-paper px-4 py-1.5 text-sm font-semibold text-ink shadow-pill no-underline hover:bg-table"
-          >
-            Sign in
-          </Link>
+          {user ? (
+            <>
+              <span className="text-sm text-muted">{user.email}</span>
+              <SignOutButton redirectTo="/sign-in" />
+            </>
+          ) : (
+            <Link
+              href="/sign-in"
+              className="rounded-full border-[1.5px] border-ink bg-paper px-4 py-1.5 text-sm font-semibold text-ink shadow-pill no-underline hover:bg-table"
+            >
+              Sign in
+            </Link>
+          )}
         </nav>
       </header>
 

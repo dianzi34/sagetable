@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { SignJWT } from "jose";
 import { describe, expect, it } from "vitest";
 import { verifySessionJwt } from "./sessionToken";
