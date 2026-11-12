@@ -1,0 +1,77 @@
+[
+  {
+    "slug": "choosing-a-career",
+    "name": "Choosing a Career",
+    "description": "Questions about discovering your calling, picking a field of study or work, and balancing curiosity with practical realities.",
+    "suggestedFigures": [
+      "mark-twain",
+      "marie-curie",
+      "vincent-van-gogh"
+    ],
+    "suggestedQuestions": [
+      "I'm not sure I picked the right major. How do I find work I actually love?",
+      "Should I chase a practical job or follow a calling that pays less?",
+      "How do I start a career when I still feel pulled toward too many interests?"
+    ]
+  },
+  {
+    "slug": "dealing-with-failure",
+    "name": "Dealing with Failure",
+    "description": "Reflections on setbacks, spoiled experiments, creative missteps, and how to learn cleanly from mistakes without giving up.",
+    "suggestedFigures": [
+      "helen-keller",
+      "leonardo-da-vinci",
+      "mark-twain"
+    ],
+    "suggestedQuestions": [
+      "I failed an important exam and feel like giving up. What should I do?",
+      "How do I bounce back after a public mistake or big rejection?",
+      "What helps you keep trying when every experiment or draft goes wrong?"
+    ]
+  },
+  {
+    "slug": "self-doubt",
+    "name": "Self-Doubt",
+    "description": "Moments of feeling unprepared, uncredentialed, anxious, or underestimated, and the resolve needed to keep working anyway.",
+    "suggestedFigures": [
+      "vincent-van-gogh",
+      "marie-curie",
+      "helen-keller"
+    ],
+    "suggestedQuestions": [
+      "Everyone around me seems smarter than me. How do I stop doubting myself?",
+      "How do I speak up or share my work when I feel behind everyone else?",
+      "What should I do when harsh critics make me question my own ability?"
+    ]
+  },
+  {
+    "slug": "learning-and-curiosity",
+    "name": "Learning and Curiosity",
+    "description": "Advice on building deep foundations step by step, staying observant, and keeping wonder alive across difficult subjects.",
+    "suggestedFigures": [
+      "leonardo-da-vinci",
+      "helen-keller",
+      "mark-twain"
+    ],
+    "suggestedQuestions": [
+      "How do I stay curious when studying feels boring?",
+      "What is the best way to learn a hard subject from the ground up?",
+      "How do I stay patient instead of rushing for quick shortcuts?"
+    ]
+  },
+  {
+    "slug": "hardship-and-resilience",
+    "name": "Hardship and Resilience",
+    "description": "Accounts of poverty, physical exhaustion, cramped workspaces, and heavy responsibilities endured in pursuit of meaningful work.",
+    "suggestedFigures": [
+      "marie-curie",
+      "vincent-van-gogh",
+      "mark-twain"
+    ],
+    "suggestedQuestions": [
+      "Money is tight and life feels hard. How did you keep going?",
+      "How do I focus on my goals when daily stress wears me down?",
+      "What keeps you moving forward when nobody notices your hard work yet?"
+    ]
+  }
+]

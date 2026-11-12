@@ -1,0 +1,200 @@
+{
+  "figure": "leonardo-da-vinci",
+  "works": [
+    {
+      "key": "notebooks-richter",
+      "title": "The Notebooks of Leonardo Da Vinci — Complete",
+      "year": 1888,
+      "sourceUrl": "https://www.gutenberg.org/ebooks/5000"
+    }
+  ],
+  "passages": [
+    {
+      "key": "leonardo-career-1",
+      "work": "notebooks-richter",
+      "location": "Vol. I, Section IX: The Practice of Painting (No. 502)",
+      "text": "Hence, O! painter, beware lest the lust of gain should supplant in you the dignity of art; for the acquisition of glory is a much greater thing than the glory of riches."
+    },
+    {
+      "key": "leonardo-career-2",
+      "work": "notebooks-richter",
+      "location": "Vol. II, Section XXI: Draft Letter to Lodovico il Moro (No. 1340)",
+      "text": "In time of peace I believe I can give perfect satisfaction and to the equal of any other in architecture and the composition of buildings public and private; and in guiding water from one place to another. Item: I can carry out sculpture in marble, bronze or clay, and also in painting whatever may be done, and as well as any other, be he whom he may."
+    },
+    {
+      "key": "leonardo-failure-1",
+      "work": "notebooks-richter",
+      "location": "Vol. I, Section I: Prolegomena (No. 18)",
+      "text": "These rules are of use only in correcting the figures; since every man makes some mistakes in his first compositions and he who knows them not, cannot amend them. But you, knowing your errors, will correct your works and where you find mistakes amend them, and remember never to fall into them again."
+    },
+    {
+      "key": "leonardo-failure-2",
+      "work": "notebooks-richter",
+      "location": "Vol. II, Section XIX: Philosophical Maxims (No. 1153)",
+      "text": "Experience never errs; it is only your judgments that err by promising themselves effects such as are not caused by your experiments. Experience does not err; only your judgments err by expecting from her what is not in her power."
+    },
+    {
+      "key": "leonardo-doubt-1",
+      "work": "notebooks-richter",
+      "location": "Vol. I, Section IX: The Practice of Painting (No. 530)",
+      "text": "Again, it is well that you should often leave off work and take a little relaxation, because, when you come back to it you are a better judge; for sitting too close at work may greatly deceive you."
+    },
+    {
+      "key": "leonardo-doubt-2",
+      "work": "notebooks-richter",
+      "location": "Vol. I, Section I: Prolegomena (No. 11)",
+      "text": "Though I may not, like them, be able to quote other authors, I shall rely on that which is much greater and more worthy:--on experience, the mistress of their Masters. They go about puffed up and pompous, dressed and decorated with [the fruits], not of their own labours, but of those of others. And they will not allow me my own. They will scorn me as an inventor; but how much more might they--who are not inventors but vaunters and declaimers of the works of others--be blamed."
+    },
+    {
+      "key": "leonardo-learning-1",
+      "work": "notebooks-richter",
+      "location": "Vol. I, Section IX: The Practice of Painting (No. 491)",
+      "text": "Again, if you wish to go to the top of a building you must go up step by step; otherwise it will be impossible that you should reach the top. Thus I say to you, whom nature prompts to pursue this art, if you wish to have a sound knowledge of the forms of objects begin with the details of them, and do not go on to the second [step] till you have the first well fixed in memory and in practice."
+    },
+    {
+      "key": "leonardo-learning-2",
+      "work": "notebooks-richter",
+      "location": "Vol. II, Section XXI: Letters and Personal Records (No. 1339)",
+      "text": "Bending my back into an arch I rested my left hand on my knee and held my right hand over my down-cast and contracted eye brows: often bending first one way and then the other, to see whether I could discover anything inside, and this being forbidden by the deep darkness within, and after having remained there some time, two contrary emotions arose in me, fear and desire--fear of the threatening dark cavern, desire to see whether there were any marvellous thing within it"
+    },
+    {
+      "key": "leonardo-hardship-1",
+      "work": "notebooks-richter",
+      "location": "Vol. II, Section XIV: Anatomy, Zoology and Physiology (No. 796)",
+      "text": "And if you should have a love for such things you might be prevented by loathing, and if that did not prevent you, you might be deterred by the fear of living in the night hours in the company of those corpses, quartered and flayed and horrible to see."
+    }
+  ],
+  "answers": [
+    {
+      "theme": "choosing-a-career",
+      "topicKeywords": [
+        "major",
+        "career",
+        "work",
+        "love",
+        "job",
+        "calling",
+        "interests",
+        "pays",
+        "craft",
+        "engineering",
+        "art"
+      ],
+      "body": "Don't pick work just for fast pay. When I was young in Florence, I trained in a busy art shop and learned to paint, sculpt, and build. Later I wrote to the ruler of Milan for a job. I didn't brag about fame—I listed bridges, canals, statues, and paintings I could actually make. Follow what makes you look twice, and build real skills people can use.",
+      "passages": [
+        {
+          "passage": "leonardo-career-1",
+          "explanation": "I urge artists not to let greed crowd out pride in fine work. Today it reminds you to weigh genuine craft above quick pay when choosing a direction."
+        },
+        {
+          "passage": "leonardo-career-2",
+          "explanation": "Applying to work in Milan, I listed real skills across buildings, waterways, sculpture, and painting. Show employers or teachers concrete ways your curiosity turns into useful work."
+        }
+      ]
+    },
+    {
+      "theme": "dealing-with-failure",
+      "topicKeywords": [
+        "failed",
+        "exam",
+        "giving",
+        "up",
+        "failure",
+        "mistake",
+        "rejection",
+        "trying",
+        "wrong",
+        "experiment",
+        "fix"
+      ],
+      "body": "Treat a failed exam like a bad sketch, not a sign to quit. In Florence and Milan, plenty of my machines, bronze plans, and paint tests broke on the first try. When that happened, I sketched the flaw in my notebook so I could figure out why. Don't sit and feel crushed. Check what broke in your study plan and run a cleaner test next time.",
+      "passages": [
+        {
+          "passage": "leonardo-failure-1",
+          "explanation": "Everyone makes mistakes in first drafts, and rules help you spot and fix them afterward. Look back at missed questions calmly so each error guides your next draft."
+        },
+        {
+          "passage": "leonardo-failure-2",
+          "explanation": "Reality does not lie when an experiment fails; only our expectation was off. Check where your study method fell short instead of blaming bad luck."
+        }
+      ]
+    },
+    {
+      "theme": "self-doubt",
+      "topicKeywords": [
+        "smarter",
+        "doubting",
+        "doubt",
+        "self",
+        "behind",
+        "ability",
+        "critics",
+        "share",
+        "work",
+        "experience",
+        "judge"
+      ],
+      "body": "Doubt hits hardest when you stare at your own work too long. In Milan, I had no fancy college degree, and bookish scholars mocked me for learning with my own eyes and hands. When I started hating my work, I put down my brush, took a short rest, and looked at it like a stranger's drawing. Step back when your head gets loud, and trust real practice over loud critics.",
+      "passages": [
+        {
+          "passage": "leonardo-doubt-1",
+          "explanation": "Staring too closely at your own work clouds your judgment, so resting helps you see straight. Take a short break when doubt spirals, then review your work with fresh eyes."
+        },
+        {
+          "passage": "leonardo-doubt-2",
+          "explanation": "Scholars looked down on me for lacking formal degrees, yet firsthand experience proved stronger than memorized quotes. Trust what you build and observe rather than credential snobbery."
+        }
+      ]
+    },
+    {
+      "theme": "learning-and-curiosity",
+      "topicKeywords": [
+        "curious",
+        "curiosity",
+        "studying",
+        "boring",
+        "learn",
+        "subject",
+        "patient",
+        "shortcuts",
+        "wonder",
+        "nature",
+        "practice"
+      ],
+      "body": "A boring class wakes up once you treat it like a dark cave waiting to be explored. One day out by steep rocks, I found a huge cave and leaned down peering into the black air, half scared and half thrilled to see inside. Even tiny things, like water twisting past a rock, turn fun when you ask why. Slow down, learn one small piece well, and hunt for one clue nobody else saw.",
+      "passages": [
+        {
+          "passage": "leonardo-learning-1",
+          "explanation": "Like climbing a building, real skill comes one stair at a time instead of rushing. Lock in one basic idea clearly before jumping to the next."
+        },
+        {
+          "passage": "leonardo-learning-2",
+          "explanation": "At a dark cave, fear and curiosity pulled at me together until wonder won out. Lean into unanswered questions instead of settling for dull surface facts."
+        }
+      ]
+    },
+    {
+      "theme": "hardship-and-resilience",
+      "topicKeywords": [
+        "money",
+        "hard",
+        "keep",
+        "going",
+        "hardship",
+        "resilience",
+        "stress",
+        "goals",
+        "forward",
+        "anatomy",
+        "patience"
+      ],
+      "body": "Big work gets hard and ugly long before anyone praises you. To paint how human bodies really move, I spent cold nights in hospitals drawing cut-open corpses by candlelight. My stomach turned and my hands got tired, yet I had to keep steady lines. Most people quit the moment work stops feeling easy. When life turns tough, hold onto why you care and keep practicing with steady hands.",
+      "passages": [
+        {
+          "passage": "leonardo-hardship-1",
+          "explanation": "Studying real anatomy meant working late beside dissected bodies despite fear and disgust. Lasting skill requires enough patience to stick with hard work when comfort disappears."
+        }
+      ]
+    }
+  ]
+}

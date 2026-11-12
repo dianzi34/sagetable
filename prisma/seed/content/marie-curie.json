@@ -1,0 +1,160 @@
+{
+  "figure": "marie-curie",
+  "works": [
+    {
+      "key": "pierre-curie",
+      "title": "Pierre Curie (with Autobiographical Notes)",
+      "year": 1923,
+      "sourceUrl": "https://www.gutenberg.org/ebooks/69617"
+    }
+  ],
+  "passages": [
+    {
+      "key": "curie-career-1",
+      "work": "pierre-curie",
+      "location": "Autobiographical Notes, Chapter I",
+      "text": "I had not yet decided what path I would choose. I was as much interested in literature and sociology as in science. However, during these years of isolated work, trying little by little to find my real preferences, I finally turned towards mathematics and physics, and resolutely undertook a serious preparation for future work. This work I proposed doing in Paris, and I hoped to save enough money to be able to live and work in that city for some time."
+    },
+    {
+      "key": "curie-failure-1",
+      "work": "pierre-curie",
+      "location": "Autobiographical Notes, Chapter I",
+      "text": "I tried out various experiments described in treatises on physics and chemistry, and the results were sometimes unexpected. At times I would be encouraged by a little unhoped-for success, at others I would be in the deepest despair because of accidents and failures resulting from my inexperience. But on the whole, though I was taught that the way of progress is neither swift nor easy, this first trial confirmed in me the taste for experimental research in the fields of physics and chemistry."
+    },
+    {
+      "key": "curie-doubt-1",
+      "work": "pierre-curie",
+      "location": "Autobiographical Notes, Chapter I",
+      "text": "My solitary study was beset with difficulties. The scientific education I had received at the lyceum was very incomplete; it was well under the bachelorship program of a French lyceum; I tried to add to it in my own way, with the help of books picked up at random. This method could not be greatly productive, yet it was not without results. I acquired the habit of independent work, and learned a few things which were to be of use later on."
+    },
+    {
+      "key": "curie-learning-2",
+      "work": "pierre-curie",
+      "location": "Autobiographical Notes, Chapter I",
+      "text": "I divided my time between courses, experimental work, and study in the library. In the evening I worked in my room, sometimes very late into the night. All that I saw and learned that was new delighted me. It was like a new world opened to me, the world of science, which I was at last permitted to know in all liberty."
+    },
+    {
+      "key": "curie-hardship-1",
+      "work": "pierre-curie",
+      "location": "Autobiographical Notes, Chapter I",
+      "text": "During a particularly rigorous winter, it was not unusual for the water to freeze in the basin in the night; to be able to sleep I was obliged to pile all my clothes on the bedcovers. In the same room I prepared my meals with the aid of an alcohol lamp and a few kitchen utensils. These meals were often reduced to bread with a cup of chocolate, eggs or fruit."
+    }
+  ],
+  "answers": [
+    {
+      "theme": "choosing-a-career",
+      "topicKeywords": [
+        "major",
+        "career",
+        "work",
+        "love",
+        "job",
+        "calling",
+        "interests",
+        "pays",
+        "science",
+        "physics",
+        "math"
+      ],
+      "body": "You don't have to pick the right major right away. In my twenties in Poland, I worked as a tutor and loved books, society, and science almost the same. Night after night of quiet study showed me that math and physics pulled me back the most. So I saved my pay to study in Paris. Notice what holds your focus when nobody makes you, and take one clear step toward it.",
+      "passages": [
+        {
+          "passage": "curie-career-1",
+          "explanation": "Even after leaving high school, I explored different subjects before choosing math and physics. Give yourself permission to test interests until one wins your steady focus."
+        }
+      ]
+    },
+    {
+      "theme": "dealing-with-failure",
+      "topicKeywords": [
+        "failed",
+        "exam",
+        "giving",
+        "up",
+        "failure",
+        "mistake",
+        "rejection",
+        "trying",
+        "wrong",
+        "experiments",
+        "science"
+      ],
+      "body": "Beginner mistakes don't mean you picked the wrong path. When I first tried real lab tests in Poland, things kept failing or going wrong because my hands were new at the work. One day a tiny win lifted me up, and the next day a ruined batch broke my heart. Still, those flops proved I wanted a life in science. Separate clumsy first tries from what you love, fix one error, and test again.",
+      "passages": [
+        {
+          "passage": "curie-failure-1",
+          "explanation": "Accidents and ruined trials taught me that discovery moves slowly, yet confirmed my love for lab work. Expect early blunders when learning something new instead of quitting."
+        }
+      ]
+    },
+    {
+      "theme": "self-doubt",
+      "topicKeywords": [
+        "smarter",
+        "doubting",
+        "doubt",
+        "self",
+        "behind",
+        "ability",
+        "critics",
+        "share",
+        "work",
+        "science",
+        "study"
+      ],
+      "body": "Feeling behind everyone else just means your start had gaps, not that your mind is weak. After high school in Poland, women couldn't even attend our local university, and my science classes left big holes. I grabbed random books and taught myself at home, feeling slow the whole time—yet I built the habit of working on my own. Don't compare your start to people with head starts. Pick one small gap and close it today.",
+      "passages": [
+        {
+          "passage": "curie-doubt-1",
+          "explanation": "My patchy school science forced me to learn independently from random books before Paris. When classmates seem ahead, quiet self-study builds stamina they may never have practiced."
+        }
+      ]
+    },
+    {
+      "theme": "learning-and-curiosity",
+      "topicKeywords": [
+        "curious",
+        "curiosity",
+        "studying",
+        "boring",
+        "learn",
+        "subject",
+        "patient",
+        "shortcuts",
+        "science",
+        "library",
+        "focus"
+      ],
+      "body": "Curiosity stays alive when you give hard work a calm daily home. When I started at the Sorbonne in Paris, fast math lectures left my head spinning because my school had skipped so much. So I split each day cleanly across classes, the lab, the library, and late study in my small room. Every new answer felt like a door opening onto a fresh world. Build a simple routine, and tough classes turn exciting.",
+      "passages": [
+        {
+          "passage": "curie-learning-2",
+          "explanation": "Balancing classes, lab work, and late-night reading turned hard catch-up study into genuine joy. Build a steady routine so learning stops feeling rushed and starts opening doors."
+        }
+      ]
+    },
+    {
+      "theme": "hardship-and-resilience",
+      "topicKeywords": [
+        "money",
+        "hard",
+        "keep",
+        "going",
+        "hardship",
+        "resilience",
+        "stress",
+        "goals",
+        "forward",
+        "cold",
+        "student"
+      ],
+      "body": "When money is tight, keep life simple and protect your main goal. In my Paris student days, I lived in a freezing attic where water turned to ice in my washbowl at night. I piled all my clothes over my bedcovers to sleep, and cooked bread, eggs, or chocolate on a tiny lamp. Even cold and broke, I never lost sight of my degree. Cut out extra noise and take one steady step today.",
+      "passages": [
+        {
+          "passage": "curie-hardship-1",
+          "explanation": "Living in a freezing room on bread and chocolate kept my student expenses small enough to finish school. Focus on your core goal instead of waiting for easy comfort."
+        }
+      ]
+    }
+  ]
+}

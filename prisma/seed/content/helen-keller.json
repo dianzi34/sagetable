@@ -1,0 +1,170 @@
+{
+  "figure": "helen-keller",
+  "works": [
+    {
+      "key": "story-of-my-life",
+      "title": "The Story of My Life",
+      "year": 1903,
+      "sourceUrl": "https://www.gutenberg.org/ebooks/2397"
+    }
+  ],
+  "passages": [
+    {
+      "key": "keller-career-1",
+      "work": "story-of-my-life",
+      "location": "Part I, Chapter XVIII",
+      "text": "The thought of going to college took root in my heart and became an earnest desire, which impelled me to enter into competition for a degree with seeing and hearing girls, in the face of the strong opposition of many true and wise friends. When I left New York the idea had become a fixed purpose; and it was decided that I should go to Cambridge."
+    },
+    {
+      "key": "keller-failure-1",
+      "work": "story-of-my-life",
+      "location": "Part I, Chapter XVII",
+      "text": "My progress in lip-reading and speech was not what my teachers and I had hoped and expected it would be. It was my ambition to speak like other people, and my teachers believed that this could be accomplished; but, although we worked hard and faithfully, yet we did not quite reach our goal. I suppose we aimed too high, and disappointment was therefore inevitable."
+    },
+    {
+      "key": "keller-failure-2",
+      "work": "story-of-my-life",
+      "location": "Part I, Chapter XIX",
+      "text": "Indeed, I am not sure now that I read all the signs correctly. I found it very hard to keep my wits about me. But I do not blame any one. The administrative board of Radcliffe did not realize how difficult they were making my examinations, nor did they understand the peculiar difficulties I had to surmount. But if they unintentionally placed obstacles in my way, I have the consolation of knowing that I overcame them all."
+    },
+    {
+      "key": "keller-doubt-1",
+      "work": "story-of-my-life",
+      "location": "Part I, Chapter XIV",
+      "text": "Indeed, I have ever since been tortured by the fear that what I write is not my own. For a long time, when I wrote a letter, even to my mother, I was seized with a sudden feeling of terror, and I would spell the sentences over and over, to make sure that I had not read them in a book. Had it not been for the persistent encouragement of Miss Sullivan, I think I should have given up trying to write altogether."
+    },
+    {
+      "key": "keller-learning-2",
+      "work": "story-of-my-life",
+      "location": "Part I, Chapter XX",
+      "text": "One of them is the precious science of patience, which teaches us that we should take our education as we would take a walk in the country, leisurely, our minds hospitably open to impressions of every sort. Such knowledge floods the soul unseen with a soundless tidal wave of deepening thought. \"Knowledge is power.\" Rather, knowledge is happiness, because to have knowledge--broad, deep knowledge--is to know true ends from false, and lofty things from low."
+    },
+    {
+      "key": "keller-hardship-1",
+      "work": "story-of-my-life",
+      "location": "Part I, Chapter XIII",
+      "text": "My work was practice, practice, practice. Discouragement and weariness cast me down frequently; but the next moment the thought that I should soon be at home and show my loved ones what I had accomplished, spurred me on, and I eagerly looked forward to their pleasure in my achievement."
+    }
+  ],
+  "answers": [
+    {
+      "theme": "choosing-a-career",
+      "topicKeywords": [
+        "major",
+        "career",
+        "work",
+        "love",
+        "job",
+        "calling",
+        "interests",
+        "pays",
+        "college",
+        "degree",
+        "purpose"
+      ],
+      "body": "Don't let anyone else shrink your goals to fit what feels safe to them. As a girl, I surprised friends by saying I wanted a Harvard degree—not to brag, but because I wanted to test myself beside other students. Even caring people begged me not to try college without sight or hearing, yet I held steady and reached Cambridge. Hear out cautious warnings kindly, then pick work big enough to make you grow.",
+      "passages": [
+        {
+          "passage": "keller-career-1",
+          "explanation": "Choosing college meant pushing past loving friends who feared I would fail. Hold onto ambitious goals instead of shrinking them to fit other people's worries."
+        }
+      ]
+    },
+    {
+      "theme": "dealing-with-failure",
+      "topicKeywords": [
+        "failed",
+        "exam",
+        "giving",
+        "up",
+        "failure",
+        "mistake",
+        "rejection",
+        "trying",
+        "wrong",
+        "algebra",
+        "obstacles"
+      ],
+      "body": "One tough exam never ends your story unless you walk away. Earlier in New York, I worked hard to speak clearly and had to accept painful letdowns when I fell short. Later, on my college math entrance test, strange braille symbols slowed me down until I thought I misread them—yet I blamed nobody and pushed through. Look calmly at what tripped you up, ask for help, and step up for your next try.",
+      "passages": [
+        {
+          "passage": "keller-failure-1",
+          "explanation": "Working faithfully on speech still ended in disappointment when progress missed our goal. Missing a high mark does not erase real effort or close off growth."
+        },
+        {
+          "passage": "keller-failure-2",
+          "explanation": "On difficult college exams with confusing math symbols, refusing to blame others helped me stay calm and pull through. Keep your composure after a hard test so you can fix what broke."
+        }
+      ]
+    },
+    {
+      "theme": "self-doubt",
+      "topicKeywords": [
+        "smarter",
+        "doubting",
+        "doubt",
+        "self",
+        "behind",
+        "ability",
+        "critics",
+        "share",
+        "work",
+        "writing",
+        "fear"
+      ],
+      "body": "Even confident-looking people get scared they don't belong. At eleven, a story I wrote accidentally echoed words read to me as a child, and panic stayed at my desk for years. Whenever I wrote even a note to my mother, I checked my lines over and over to prove they were really mine. Only my teacher Anne Sullivan kept me from quitting writing for good. Lean on someone who believes in you when doubt hits, and write one honest page today.",
+      "passages": [
+        {
+          "passage": "keller-doubt-1",
+          "explanation": "Fear of sounding unoriginal nearly drove me to quit writing until my teacher cheered me on. When doubt whispers you don't belong, lean on trusted encouragement and keep practicing."
+        }
+      ]
+    },
+    {
+      "theme": "learning-and-curiosity",
+      "topicKeywords": [
+        "curious",
+        "curiosity",
+        "studying",
+        "boring",
+        "learn",
+        "subject",
+        "patient",
+        "shortcuts",
+        "reading",
+        "knowledge",
+        "patience"
+      ],
+      "body": "Studying feels dull when you treat it like a race instead of a slow walk. At college, reading big raised-print books by touch made skimming impossible, so I couldn't rush through chapters before tests. Having to slow down taught me patience—taking my classes like an easy walk in the country until learning felt like pure joy. Drop the rush on one page tonight, go slowly, and look for one idea that makes you smile.",
+      "passages": [
+        {
+          "passage": "keller-learning-2",
+          "explanation": "Treating education like an unhurried country walk turns knowledge into steady happiness. Slow down enough to notice one interesting idea instead of rushing purely for grades."
+        }
+      ]
+    },
+    {
+      "theme": "hardship-and-resilience",
+      "topicKeywords": [
+        "money",
+        "hard",
+        "keep",
+        "going",
+        "hardship",
+        "resilience",
+        "stress",
+        "goals",
+        "forward",
+        "practice",
+        "speech"
+      ],
+      "body": "Hard days get lighter when you tie your work to someone you love. Learning to talk without hearing meant pressing my fingers on my teacher's throat and lips, then repeating words for hours until my own chest vibrated right. Feeling tired and lost pulled me down often, yet picturing how thrilled my mother and little sister would be kept me trying. Connect your daily grit to love, and you can outlast almost anything.",
+      "passages": [
+        {
+          "passage": "keller-hardship-1",
+          "explanation": "Endless speech drills wore me out, yet picturing my family's joy pulled me forward. Connect heavy daily work to someone or something you care about when energy fades."
+        }
+      ]
+    }
+  ]
+}
