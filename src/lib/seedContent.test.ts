@@ -2,6 +2,11 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  DEMO_ANSWER_CARDS,
+  DEMO_NO_MATCH_CARD,
+  DEMO_THEME_SLUG,
+} from "@/server/fixtures/answerCards";
+import {
   countSentences,
   countWords,
   loadSeedContent,
@@ -188,6 +193,32 @@ describe("curated seed content files", () => {
     }
   });
 
+  it("uses short field labels (at most 3 words) and year-only era ranges for all figures", () => {
+    const content = loadSeedContent();
+
+    for (const figure of content.figures) {
+      expect(figure.era).toMatch(/^\d{4}–\d{4}$/);
+      expect(countWords(figure.field)).toBeLessThanOrEqual(3);
+    }
+  });
+
+  it("writes every passage explanation in the third person", () => {
+    const content = loadSeedContent();
+
+    for (const figureContent of content.figureContents) {
+      for (const answer of figureContent.answers) {
+        for (const answerPassage of answer.passages) {
+          expect(answerPassage.explanation.startsWith("I ")).toBe(false);
+          expect(answerPassage.explanation).not.toContain(" I ");
+          expect(answerPassage.explanation).not.toContain(" my ");
+          expect(answerPassage.explanation).not.toMatch(
+            /\b(me|my|mine|myself)\b/i,
+          );
+        }
+      }
+    }
+  });
+
   it("enforces word and sentence limits and lowercase topicKeywords across all curated entries", () => {
     const content = loadSeedContent();
 
@@ -212,6 +243,35 @@ describe("curated seed content files", () => {
           expect(countWords(answerPassage.explanation)).toBeLessThanOrEqual(35);
           expect(countSentences(answerPassage.explanation)).toBeLessThanOrEqual(2);
         }
+      }
+    }
+  });
+
+  it("keeps /roundtable answer card fixtures in sync with curated seed content", () => {
+    const content = loadSeedContent();
+    const figureBySlug = new Map(
+      content.figures.map((figure) => [figure.slug, figure]),
+    );
+    const contentByFigure = new Map(
+      content.figureContents.map((entry) => [entry.figure, entry]),
+    );
+
+    for (const card of [...DEMO_ANSWER_CARDS, DEMO_NO_MATCH_CARD]) {
+      const figure = figureBySlug.get(card.figure.slug);
+      expect(figure).toBeDefined();
+      expect(card.figure.field).toBe(figure?.field);
+      expect(card.figure.era).toBe(figure?.era);
+
+      if (card.answer !== null) {
+        const figureContent = contentByFigure.get(card.figure.slug);
+        const seedAnswer = figureContent?.answers.find(
+          (answer) => answer.theme === DEMO_THEME_SLUG,
+        );
+        expect(seedAnswer).toBeDefined();
+        expect(card.answer.body).toBe(seedAnswer?.body);
+        expect(card.answer.passages.map((p) => p.explanation)).toEqual(
+          seedAnswer?.passages.map((p) => p.explanation),
+        );
       }
     }
   });
