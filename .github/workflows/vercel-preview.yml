@@ -22,37 +22,30 @@ jobs:
     env:
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
-      - name: Check Vercel CLI credentials
-        id: creds
+      - name: Validate Vercel CLI credentials
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "Vercel CLI secrets not configured; skipping CLI deploy in favor of Vercel Git integration."
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error::Missing required Vercel secrets: VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID must be set in repository secrets."
+            exit 1
           fi
 
       - name: Checkout repository
-        if: steps.creds.outputs.configured == 'true'
         uses: actions/checkout@v4
 
       - name: Set up Node.js 20
-        if: steps.creds.outputs.configured == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
 
       - name: Install Vercel CLI
-        if: steps.creds.outputs.configured == 'true'
         run: npm install --global vercel@latest
 
       - name: Pull Vercel environment
-        if: steps.creds.outputs.configured == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -65,7 +58,6 @@ jobs:
           fi
 
       - name: Build project artifacts for Vercel
-        if: steps.creds.outputs.configured == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -79,7 +71,6 @@ jobs:
 
       - name: Deploy prebuilt artifacts to Vercel
         id: deploy
-        if: steps.creds.outputs.configured == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -94,7 +85,7 @@ jobs:
           echo "Vercel URL: $url" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment preview URL on pull request
-        if: steps.creds.outputs.configured == 'true' && github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           PREVIEW_URL: ${{ steps.deploy.outputs.url }}
