@@ -85,6 +85,10 @@ describe("Curator content management integration", () => {
     );
 
     expect(updated.name).toBe("Augusta Ada King, Countess of Lovelace");
+
+    const figures = await listFigures(dbClient);
+    expect(figures).toHaveLength(1);
+    expect(figures[0]?.name).toBe("Augusta Ada King, Countess of Lovelace");
   });
 
   it("creates themes and links figures with join table", async () => {
@@ -122,6 +126,13 @@ describe("Curator content management integration", () => {
     const themesList = await listThemes(dbClient);
     expect(themesList).toHaveLength(1);
     expect(themesList[0]?.figures).toHaveLength(1);
+
+    const updatedTheme = await updateTheme(
+      theme.id,
+      { description: "Updated discovery description." },
+      dbClient,
+    );
+    expect(updatedTheme.description).toBe("Updated discovery description.");
   });
 
   it("uploads public domain text, chunks it into passages, and populates search vectors", async () => {

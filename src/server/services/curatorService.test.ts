@@ -209,7 +209,7 @@ describe("curatorService (unit)", () => {
       expect(passages.length).toBeGreaterThanOrEqual(2);
       expect(passages[0]?.location).toContain("Chapter 1");
       expect(passages[0]?.text).toContain("early days");
-      expect(passages.some((p) => p.location.toContain("Chapter 2"))).toBe(true);
+      expect(passages.some((p) => p.location.includes("Chapter 2"))).toBe(true);
     });
 
     it("handles plain text without headers by numbering paragraphs", () => {
