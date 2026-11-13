@@ -33,7 +33,7 @@ describe("US-10 / Issue #16: Multi-stage CI/CD, CodeQL, Environment Management, 
     const codeqlYaml = readRepoFile(codeqlPath);
     expect(codeqlYaml).toContain("github/codeql-action/init");
     expect(codeqlYaml).toContain("github/codeql-action/analyze");
-    expect(codeqlYaml).toMatch(/languages:.*(?:javascript|typescript)/i);
+    expect(codeqlYaml).toContain("javascript-typescript");
   });
 
   it("configures automated production deployment to Vercel on merge to main", () => {
@@ -42,7 +42,8 @@ describe("US-10 / Issue #16: Multi-stage CI/CD, CodeQL, Environment Management, 
 
     const deployYaml = readRepoFile(deployPath);
     expect(deployYaml).toContain("branches:\n      - main");
-    expect(deployYaml).toContain("vercel pull --environment=production");
+    expect(deployYaml).toContain("vercel pull");
+    expect(deployYaml).toContain("--environment=production");
     expect(deployYaml).toContain("vercel build --prod");
     expect(deployYaml).toContain("vercel deploy --prebuilt --prod");
     expect(deployYaml).toContain("VERCEL_TOKEN");

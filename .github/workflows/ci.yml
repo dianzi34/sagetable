@@ -14,8 +14,34 @@ permissions:
   contents: read
 
 jobs:
-  checks:
-    name: Lint, Typecheck, Unit, Integration & Build
+  quality-and-security:
+    name: Lint, Typecheck & Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Dependency vulnerability audit
+        run: npm audit --audit-level=high
+
+  test-unit-integration:
+    name: Unit & Integration Tests and Build
+    needs: quality-and-security
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -49,12 +75,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Typecheck
-        run: npm run typecheck
-
       - name: Run unit tests
         run: npm test
 
@@ -66,6 +86,7 @@ jobs:
 
   e2e:
     name: Playwright E2E
+    needs: test-unit-integration
     runs-on: ubuntu-latest
     services:
       postgres:
