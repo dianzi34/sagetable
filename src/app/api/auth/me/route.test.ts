@@ -1,6 +1,17 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SESSION_COOKIE_NAME } from "@/lib/auth";
 import { signSessionToken } from "@/server/auth/jwt";
+
+const mockUserFindUnique = vi.fn();
+
+vi.mock("@/server/db", () => ({
+  prisma: {
+    user: {
+      findUnique: (...args: unknown[]) => mockUserFindUnique(...args),
+    },
+  },
+}));
+
 import { GET } from "./route";
 
 const VALID_DATABASE_URL =
@@ -16,6 +27,12 @@ describe("GET /api/auth/me", () => {
       DATABASE_URL: VALID_DATABASE_URL,
       JWT_SECRET: VALID_JWT_SECRET,
     };
+    mockUserFindUnique.mockReset();
+    mockUserFindUnique.mockResolvedValue({
+      id: "admin-1",
+      email: "admin@sagetable.org",
+      role: "ADMIN",
+    });
   });
 
   afterEach(() => {

@@ -1,7 +1,8 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { SESSION_COOKIE_NAME } from "@/lib/auth";
+import { normalizeRole, SESSION_COOKIE_NAME } from "@/lib/auth";
+import { prisma } from "@/server/db";
 import type { AuthRole, SessionUser } from "@/types/auth";
 import { verifySessionToken } from "./jwt";
 
@@ -74,13 +75,28 @@ export async function getOptionalUser(
 
 /**
  * Require a valid authenticated user or throw a 401 AuthError.
+ * Loads the user from the database to guarantee existence and active role.
  */
 export async function requireUser(request?: Request): Promise<SessionUser> {
-  const user = await getOptionalUser(request);
-  if (!user) {
+  const session = await getOptionalUser(request);
+  if (!session) {
     throw new AuthError(401, "UNAUTHORIZED", "Authentication required");
   }
-  return user;
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id: session.id },
+    select: { id: true, email: true, role: true },
+  });
+
+  if (!dbUser) {
+    throw new AuthError(401, "UNAUTHORIZED", "User not found");
+  }
+
+  return {
+    id: dbUser.id,
+    email: dbUser.email,
+    role: normalizeRole(dbUser.role),
+  };
 }
 
 /**
