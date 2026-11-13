@@ -167,6 +167,54 @@ describe("Auth service, JWT roles, and ownership integration", () => {
     });
   });
 
+  it("rejects demoted users with 403 even when holding a previously issued privileged JWT", async () => {
+    const registered = await registerUser({
+      email: "staff@test.org",
+      password: "password123",
+    });
+
+    await dbClient.user.update({
+      where: { id: registered.user.id },
+      data: { role: "CURATOR" },
+    });
+
+    const session = await signInUser({
+      email: "staff@test.org",
+      password: "password123",
+    });
+    expect(session.user.role).toBe("curator");
+
+    const curatorReq = new Request("http://localhost:3000/api/curator/flags", {
+      headers: { cookie: `${SESSION_COOKIE_NAME}=${session.token}` },
+    });
+
+    await expect(requireRole("curator", curatorReq)).resolves.toMatchObject({
+      role: "curator",
+    });
+
+    // Admin demotes user in database to USER
+    await dbClient.user.update({
+      where: { id: registered.user.id },
+      data: { role: "USER" },
+    });
+
+    // Demoted user holding old token must now be rejected with 403
+    await expect(requireRole("curator", curatorReq)).rejects.toMatchObject({
+      status: 403,
+      code: "FORBIDDEN",
+    });
+
+    // If user is deleted from database, requireUser must reject with 401
+    await dbClient.user.delete({
+      where: { id: registered.user.id },
+    });
+
+    await expect(requireRole("curator", curatorReq)).rejects.toMatchObject({
+      status: 401,
+      code: "UNAUTHORIZED",
+    });
+  });
+
   it("ensures a user can only access their own roundtables", async () => {
     const owner = await registerUser({
       email: "owner@test.org",
