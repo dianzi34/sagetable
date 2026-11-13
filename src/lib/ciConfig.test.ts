@@ -66,6 +66,8 @@ describe("CI and Vercel deployment preview configuration", () => {
     expect(previewYaml).toContain("VERCEL_PROJECT_ID");
     expect(previewYaml).toContain("vercel build");
     expect(previewYaml).toContain("vercel deploy --prebuilt");
+    expect(previewYaml).toContain("exit 1");
+    expect(previewYaml).toContain("Missing required Vercel secrets");
     expect(previewYaml).not.toMatch(
       /ANTHROPIC_API_KEY|OPENAI_API_KEY|VOYAGE_API_KEY/,
     );
