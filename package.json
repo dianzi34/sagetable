@@ -13,7 +13,11 @@
     "test:e2e": "playwright test",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
+    "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "npx --no-install tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -37,6 +41,7 @@
     "jsdom": "^26.1.0",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^3.2.7"
   }

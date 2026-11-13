@@ -59,6 +59,7 @@ describe("Prisma schema and full-text search integration", () => {
     const passage = await prisma.passage.create({
       data: {
         workId: work.id,
+        key: "twain-river-currents",
         location: "Chapter 9",
         text: "Steamboat pilots navigated treacherous river currents with patient observation.",
       },
@@ -104,6 +105,14 @@ describe("Prisma schema and full-text search integration", () => {
       },
     });
 
+    const secondTheme = await prisma.theme.create({
+      data: {
+        slug: "learning-and-curiosity",
+        name: "Learning and curiosity",
+        description: "How to stay curious during setbacks.",
+      },
+    });
+
     const keywordMatch = await prisma.answer.create({
       data: {
         figureId: figure.id,
@@ -116,7 +125,7 @@ describe("Prisma schema and full-text search integration", () => {
     const bodyOnlyMatch = await prisma.answer.create({
       data: {
         figureId: figure.id,
-        themeId: theme.id,
+        themeId: secondTheme.id,
         topicKeywords: "curiosity discovery method",
         body: "True resilience appears when measurements fail, because resilience keeps inquiry alive.",
       },
@@ -170,6 +179,7 @@ describe("Prisma schema and full-text search integration", () => {
     const passage = await prisma.passage.create({
       data: {
         workId: work.id,
+        key: "keller-chapter-4",
         location: "Chapter 4",
         text: "Knowledge is love and light and vision.",
       },
