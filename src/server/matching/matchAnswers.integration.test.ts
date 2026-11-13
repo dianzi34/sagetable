@@ -99,6 +99,7 @@ async function seedMatchingFixtures(
 
   const twainPassage1 = await prisma.passage.create({
     data: {
+      key: "test-twain-passage-1",
       workId: twainWork.id,
       location: "Chapter 6",
       text: "He agreed to teach me the Mississippi River from New Orleans to St. Louis for five hundred dollars.",
@@ -107,6 +108,7 @@ async function seedMatchingFixtures(
 
   const twainPassage2 = await prisma.passage.create({
     data: {
+      key: "test-twain-passage-2",
       workId: twainLetters.id,
       location: "Vol. II, Ch. IX",
       text: "I have worked there at all the different trades and professions known to the catalogues.",
@@ -115,6 +117,7 @@ async function seedMatchingFixtures(
 
   const curieCareerPassage = await prisma.passage.create({
     data: {
+      key: "test-curie-career-passage",
       workId: curieWork.id,
       location: "Autobiographical Notes, Chapter I",
       text: "I had not yet decided what path I would choose. I finally turned towards mathematics and physics.",
@@ -123,6 +126,7 @@ async function seedMatchingFixtures(
 
   const curieFailurePassage = await prisma.passage.create({
     data: {
+      key: "test-curie-failure-passage",
       workId: curieWork.id,
       location: "Autobiographical Notes, Chapter II",
       text: "I tried out various experiments described in treatises on physics and chemistry, at times in despair because of accidents and failures.",
@@ -294,25 +298,41 @@ describe("matchAnswers PostgreSQL integration", () => {
     });
     const extraPassage = await prisma.passage.create({
       data: {
+        key: "test-curie-extra-passage",
         workId: physicsWork.id,
         location: "Chapter III",
         text: "Patience sustained every tedious preparation day after day.",
       },
     });
 
+    const tieThemeA = await prisma.theme.create({
+      data: {
+        slug: "tie-theme-a",
+        name: "Tie Theme A",
+        description: "Tie breaker test theme A",
+      },
+    });
+    const tieThemeB = await prisma.theme.create({
+      data: {
+        slug: "tie-theme-b",
+        name: "Tie Theme B",
+        description: "Tie breaker test theme B",
+      },
+    });
+
     const identicalBody = "Stay steady when patience is tested in daily work.";
-    const careerOverlap = await prisma.answer.create({
+    const overlapA = await prisma.answer.create({
       data: {
         figureId: ids.curieId,
-        themeId: ids.careerThemeId,
+        themeId: tieThemeA.id,
         topicKeywords: "patience persistence discipline",
         body: identicalBody,
       },
     });
-    const failureOverlap = await prisma.answer.create({
+    const overlapB = await prisma.answer.create({
       data: {
         figureId: ids.curieId,
-        themeId: ids.failureThemeId,
+        themeId: tieThemeB.id,
         topicKeywords: "patience persistence discipline",
         body: identicalBody,
       },
@@ -321,41 +341,41 @@ describe("matchAnswers PostgreSQL integration", () => {
     await prisma.answerPassage.createMany({
       data: [
         {
-          answerId: careerOverlap.id,
+          answerId: overlapA.id,
           passageId: extraPassage.id,
-          explanation: "Career patience note.",
+          explanation: "Theme A patience note.",
           order: 0,
         },
         {
-          answerId: failureOverlap.id,
+          answerId: overlapB.id,
           passageId: extraPassage.id,
-          explanation: "Failure patience note.",
+          explanation: "Theme B patience note.",
           order: 0,
         },
       ],
     });
 
-    const failureResults = await matchAnswers(
+    const resultsB = await matchAnswers(
       {
         question: "How do I keep patience and persistence?",
         figureIds: [ids.curieId],
-        themeId: ids.failureThemeId,
+        themeId: tieThemeB.id,
       },
       prisma,
     );
 
-    expect(failureResults[0]?.answer?.id).toBe(failureOverlap.id);
+    expect(resultsB[0]?.answer?.id).toBe(overlapB.id);
 
-    const careerResults = await matchAnswers(
+    const resultsA = await matchAnswers(
       {
         question: "How do I keep patience and persistence?",
         figureIds: [ids.curieId],
-        themeId: ids.careerThemeId,
+        themeId: tieThemeA.id,
       },
       prisma,
     );
 
-    expect(careerResults[0]?.answer?.id).toBe(careerOverlap.id);
+    expect(resultsA[0]?.answer?.id).toBe(overlapA.id);
   });
 
   it("returns answer: null on off-topic questions even when a themeId is supplied", async () => {
@@ -404,16 +424,32 @@ describe("matchAnswers PostgreSQL integration", () => {
     });
     const resiliencePassage = await prisma.passage.create({
       data: {
+        key: "test-curie-resilience-passage",
         workId: curieWork.id,
         location: "Chapter IV",
         text: "Endurance matters when laboratory instruments fail.",
       },
     });
 
+    const weightThemeA = await prisma.theme.create({
+      data: {
+        slug: "weight-theme-a",
+        name: "Weight Theme A",
+        description: "Weight ranking test theme A",
+      },
+    });
+    const weightThemeB = await prisma.theme.create({
+      data: {
+        slug: "weight-theme-b",
+        name: "Weight Theme B",
+        description: "Weight ranking test theme B",
+      },
+    });
+
     const keywordAnswer = await prisma.answer.create({
       data: {
         figureId: ids.curieId,
-        themeId: ids.failureThemeId,
+        themeId: weightThemeA.id,
         topicKeywords: "resilience grit fortitude",
         body: "Keep careful notes when tests are difficult.",
       },
@@ -422,7 +458,7 @@ describe("matchAnswers PostgreSQL integration", () => {
     const bodyAnswer = await prisma.answer.create({
       data: {
         figureId: ids.curieId,
-        themeId: ids.failureThemeId,
+        themeId: weightThemeB.id,
         topicKeywords: "astronomy telescope stars",
         body: "True resilience appears when measurements falter, and resilience keeps study alive.",
       },
@@ -449,7 +485,6 @@ describe("matchAnswers PostgreSQL integration", () => {
       {
         question: "How do I build resilience?",
         figureIds: [ids.curieId],
-        themeId: ids.failureThemeId,
       },
       prisma,
     );
@@ -525,6 +560,7 @@ describe("matchAnswers PostgreSQL integration", () => {
       for (const passage of figContent.passages) {
         const createdPassage = await prisma.passage.create({
           data: {
+            key: passage.key,
             workId: workIdsByKey.get(passage.work)!,
             location: passage.location,
             text: passage.text,
