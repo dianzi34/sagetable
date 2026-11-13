@@ -4,9 +4,13 @@ const requireRoleMock = vi.fn();
 const listUsageLimitsMock = vi.fn();
 const setUsageLimitMock = vi.fn();
 
-vi.mock("@/server/auth/session", () => ({
-  requireRole: (...args: unknown[]) => requireRoleMock(...args),
-}));
+vi.mock("@/server/auth/session", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/server/auth/session")>();
+  return {
+    ...actual,
+    requireRole: (...args: unknown[]) => requireRoleMock(...args),
+  };
+});
 
 vi.mock("@/server/services/adminService", () => ({
   listUsageLimits: (...args: unknown[]) => listUsageLimitsMock(...args),

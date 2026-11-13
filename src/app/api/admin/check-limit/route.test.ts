@@ -4,9 +4,13 @@ const requireUserMock = vi.fn();
 const checkDailyRoundtableLimitMock = vi.fn();
 const enforceDailyRoundtableLimitMock = vi.fn();
 
-vi.mock("@/server/auth/session", () => ({
-  requireUser: (...args: unknown[]) => requireUserMock(...args),
-}));
+vi.mock("@/server/auth/session", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/server/auth/session")>();
+  return {
+    ...actual,
+    requireUser: (...args: unknown[]) => requireUserMock(...args),
+  };
+});
 
 vi.mock("@/server/services/usageLimitService", () => {
   class MockUsageLimitError extends Error {

@@ -206,7 +206,7 @@ describe("Admin roles, limits, and audit log integration", () => {
   });
 
   it("lists users and audit logs", async () => {
-    const admin = await dbClient.user.create({
+    await dbClient.user.create({
       data: {
         email: "admin3@sagetable.org",
         passwordHash: "hash-admin",
@@ -216,7 +216,7 @@ describe("Admin roles, limits, and audit log integration", () => {
 
     const users = await listUsers(dbClient);
     expect(users).toHaveLength(1);
-    expect((users[0] as Record<string, unknown>).passwordHash).toBeUndefined();
+    expect((users[0] as unknown as Record<string, unknown>).passwordHash).toBeUndefined();
 
     const limits = await listUsageLimits(dbClient);
     expect(limits).toHaveLength(3);

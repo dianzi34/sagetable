@@ -3,9 +3,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const requireRoleMock = vi.fn();
 const listAuditLogsMock = vi.fn();
 
-vi.mock("@/server/auth/session", () => ({
-  requireRole: (...args: unknown[]) => requireRoleMock(...args),
-}));
+vi.mock("@/server/auth/session", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/server/auth/session")>();
+  return {
+    ...actual,
+    requireRole: (...args: unknown[]) => requireRoleMock(...args),
+  };
+});
 
 vi.mock("@/server/services/adminService", () => ({
   listAuditLogs: (...args: unknown[]) => listAuditLogsMock(...args),
