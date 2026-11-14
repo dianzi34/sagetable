@@ -327,7 +327,8 @@ export async function uploadWorkWithPassages(
     });
 
     await tx.passage.createMany({
-      data: chunks.map((chunk) => ({
+      data: chunks.map((chunk, index) => ({
+        key: `${work.id}-p${index + 1}`,
         workId: work.id,
         location: chunk.location,
         text: chunk.text,
