@@ -55,6 +55,12 @@ export function AppShell({
           </Link>
           {user ? (
             <>
+              <Link
+                href="/history"
+                className="rounded-full border-[1.5px] border-line bg-paper px-4 py-1.5 text-sm font-medium text-ink shadow-pill no-underline hover:border-ink"
+              >
+                History
+              </Link>
               <span className="text-sm text-muted">{user.email}</span>
               <SignOutButton redirectTo="/sign-in" />
             </>

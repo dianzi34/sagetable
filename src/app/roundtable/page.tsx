@@ -1,6 +1,7 @@
 import type { ReactElement } from "react";
 import { AnswerCard } from "@/components/AnswerCard";
 import { AppShell } from "@/components/AppShell";
+import { LiveRoundtable } from "@/components/roundtable/LiveRoundtable";
 import {
   DEMO_ANSWER_CARDS,
   DEMO_NO_MATCH_CARD,
@@ -8,10 +9,41 @@ import {
   DEMO_THEME_NAME,
 } from "@/server/fixtures/answerCards";
 
+interface RoundtablePageProps {
+  searchParams?: Promise<{
+    theme?: string;
+    figures?: string;
+    q?: string;
+    id?: string;
+  }>;
+}
+
 /**
- * Fixture-backed roundtable preview page displaying the demo question and answer cards.
+ * Roundtable page supporting live SSE answer streaming with fallback to fixtures for tests.
  */
-export default function RoundtablePage(): ReactElement {
+export default async function RoundtablePage({
+  searchParams,
+}: RoundtablePageProps = {}): Promise<ReactElement> {
+  const params = searchParams ? await searchParams : {};
+  const isLive = Boolean(params.theme || params.figures || params.q || params.id);
+
+  if (isLive) {
+    const figureIds = params.figures
+      ? params.figures.split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
+
+    return (
+      <AppShell>
+        <LiveRoundtable
+          initialThemeSlug={params.theme}
+          initialFigureIds={figureIds}
+          initialQuestion={params.q}
+          roundtableId={params.id}
+        />
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell>
       <section className="bg-grid-floor pt-8 pb-10 px-6">

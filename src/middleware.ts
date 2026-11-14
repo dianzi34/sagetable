@@ -25,6 +25,7 @@ export const config = {
     "/themes/:path*",
     "/roundtable/:path+",
     "/roundtables/:path*",
+    "/history/:path*",
     "/notebook/:path*",
     "/curator/:path*",
     "/admin/:path*",
