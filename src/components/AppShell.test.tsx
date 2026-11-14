@@ -1,5 +1,13 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    refresh: vi.fn(),
+  }),
+}));
+
 import { AppShell } from "./AppShell";
 
 describe("AppShell", () => {
@@ -16,6 +24,25 @@ describe("AppShell", () => {
     const nav = within(header).getByRole("navigation");
     expect(within(nav).getByRole("link", { name: "Roundtable" })).toBeInTheDocument();
     expect(within(nav).getByRole("link", { name: "Sign in" })).toBeInTheDocument();
+  });
+
+  it("shows the signed-in user and a Sign out button instead of Sign in when user prop is provided", () => {
+    render(
+      <AppShell
+        user={{ id: "user-1", email: "curie@example.com", role: "curator" }}
+      >
+        <p>Page content</p>
+      </AppShell>,
+    );
+
+    const nav = screen.getByRole("navigation");
+    expect(within(nav).getByText("curie@example.com")).toBeInTheDocument();
+    expect(
+      within(nav).getByRole("button", { name: /sign out/i }),
+    ).toBeInTheDocument();
+    expect(
+      within(nav).queryByRole("link", { name: "Sign in" }),
+    ).not.toBeInTheDocument();
   });
 
   it("renders a main landmark containing page children", () => {
