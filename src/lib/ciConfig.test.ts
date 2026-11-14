@@ -28,6 +28,7 @@ describe("CI and Vercel deployment preview configuration", () => {
     expect(ciYaml).toContain("npm run test:integration");
     expect(ciYaml).toContain("npm run build");
     expect(ciYaml).toContain("npm run test:e2e");
+    expect(ciYaml).toContain("npm run db:seed");
 
     expect(ciYaml).not.toMatch(/ANTHROPIC_API_KEY|OPENAI_API_KEY|VOYAGE_API_KEY/);
   });
