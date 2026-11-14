@@ -55,20 +55,15 @@ describe("CI and Vercel deployment preview configuration", () => {
     );
   });
 
-  it("defines a safe Vercel preview workflow supporting PR previews and main deploys when credentials are configured", () => {
+  it("defines a safe Vercel preview workflow acknowledging native Vercel Git integration without CLI deploy steps", () => {
     const previewPath = ".github/workflows/vercel-preview.yml";
     expect(existsSync(path.join(ROOT_DIR, previewPath))).toBe(true);
 
     const previewYaml = readRepoFile(previewPath);
     expect(previewYaml).toContain("pull_request:");
     expect(previewYaml).toContain("push:");
-    expect(previewYaml).toContain("VERCEL_TOKEN");
-    expect(previewYaml).toContain("VERCEL_ORG_ID");
-    expect(previewYaml).toContain("VERCEL_PROJECT_ID");
-    expect(previewYaml).toContain("vercel build");
-    expect(previewYaml).toContain("vercel deploy --prebuilt");
-    expect(previewYaml).toContain("exit 1");
-    expect(previewYaml).toContain("Missing required Vercel secrets");
+    expect(previewYaml).toContain("Vercel Git Integration");
+    expect(previewYaml).not.toContain("vercel deploy --prebuilt");
     expect(previewYaml).not.toMatch(
       /ANTHROPIC_API_KEY|OPENAI_API_KEY|VOYAGE_API_KEY/,
     );
