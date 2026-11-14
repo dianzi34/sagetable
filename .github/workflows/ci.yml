@@ -103,6 +103,9 @@ jobs:
       - name: Apply database migrations
         run: npx prisma migrate deploy
 
+      - name: Seed database for E2E
+        run: npm run db:seed
+
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
