@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties, ReactElement } from "react";
 import { AppShell } from "@/components/AppShell";
+import { getOptionalUser } from "@/server/auth/session";
 
 const FIGURE_CARDS = [
   {
@@ -29,9 +30,11 @@ const FIGURE_CARDS = [
 /**
  * Landing page introducing the hand-drawn SageTable roundtable experience.
  */
-export default function HomePage(): ReactElement {
+export default async function HomePage(): Promise<ReactElement> {
+  const user = await getOptionalUser();
+
   return (
-    <AppShell>
+    <AppShell user={user}>
       <svg width="0" height="0" className="absolute" aria-hidden="true">
         <defs>
           <filter id="wobble">
