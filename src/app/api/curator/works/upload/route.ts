@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
-import { uploadWorkSchema } from "@/lib/curator";
+import { MAX_UPLOAD_SIZE_BYTES, uploadWorkSchema } from "@/lib/curator";
 import { AuthError, requireRole } from "@/server/auth/session";
 import { CuratorError, uploadWorkWithPassages } from "@/server/services/curatorService";
 
@@ -29,6 +29,18 @@ export async function POST(request: Request): Promise<NextResponse> {
           },
         },
         { status: 400 },
+      );
+    }
+
+    if (Buffer.byteLength(parsed.data.textContent, "utf8") > MAX_UPLOAD_SIZE_BYTES) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "PAYLOAD_TOO_LARGE",
+            message: "File size exceeds 200 KB limit",
+          },
+        },
+        { status: 413 },
       );
     }
 

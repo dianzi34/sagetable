@@ -36,6 +36,8 @@ export const updateThemeSchema = z.object({
   figureIds: z.array(z.string()).optional(),
 });
 
+export const MAX_UPLOAD_SIZE_BYTES = 200 * 1024; // 200 KB
+
 export const uploadWorkSchema = z.object({
   figureId: z.string({ error: "Figure ID is required" }).trim().min(1),
   title: z.string({ error: "Title is required" }).trim().min(1),
@@ -44,7 +46,20 @@ export const uploadWorkSchema = z.object({
   publicDomainConfirmed: z.literal(true, {
     error: "Public domain confirmation is required",
   }),
-  textContent: z.string({ error: "Text content is required" }).trim().min(10, "Text content must be at least 10 characters"),
+  fileName: z
+    .string()
+    .trim()
+    .regex(/\.txt$/i, "Only .txt files are supported")
+    .optional(),
+  contentType: z
+    .string()
+    .trim()
+    .regex(/^text\/plain/i, "Only text/plain files are supported")
+    .optional(),
+  textContent: z
+    .string({ error: "Text content is required" })
+    .trim()
+    .min(1, "Text content cannot be empty"),
 });
 
 export const answerPassageInputSchema = z.object({
