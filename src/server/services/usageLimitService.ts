@@ -1,6 +1,7 @@
 import "server-only";
 import type { Prisma, PrismaClient, Role } from "@prisma/client";
 import { prisma as defaultPrisma } from "@/server/db";
+import { AuthError } from "@/server/auth/session";
 
 type PrismaLike = PrismaClient | Prisma.TransactionClient;
 
@@ -131,4 +132,31 @@ export async function enforceDailyRoundtableLimit(
   if (!status.allowed) {
     throw new UsageLimitError(status.resetAt, status.limit);
   }
+}
+
+/**
+ * Server-side helper asserting that a user is within their daily usage limit.
+ * Loads the user's role from DB and throws UsageLimitError (429) if exceeded, or AuthError (401) if not found.
+ */
+export async function assertWithinLimit(
+  userId: string,
+  db: PrismaLike = defaultPrisma,
+  now: Date = new Date(),
+): Promise<LimitStatus> {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { id: true, role: true },
+  });
+
+  if (!user) {
+    throw new AuthError(401, "UNAUTHORIZED", "User not found");
+  }
+
+  const status = await checkDailyRoundtableLimit(user.id, user.role, db, now);
+
+  if (!status.allowed) {
+    throw new UsageLimitError(status.resetAt, status.limit);
+  }
+
+  return status;
 }

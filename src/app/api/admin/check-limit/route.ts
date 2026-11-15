@@ -8,6 +8,9 @@ import {
   UsageLimitError,
 } from "@/server/services/usageLimitService";
 
+/**
+ * Check the authenticated caller's own daily roundtable usage and remaining quota (uses requireUser).
+ */
 export async function GET(request: Request): Promise<NextResponse> {
   try {
     const user = await requireUser(request);
