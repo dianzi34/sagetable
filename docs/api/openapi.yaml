@@ -1,0 +1,584 @@
+openapi: 3.1.0
+info:
+  title: SageTable API
+  version: 0.1.0
+  description: >
+    API documentation for SageTable, where users bring questions to a
+    roundtable of great historical figures.
+servers:
+  - url: /
+    description: Current deployment origin
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new account
+      description: Create a new user with email and password, returning user data and setting an httpOnly session cookie.
+      operationId: registerUser
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              email: "reader@example.com"
+              password: "password123"
+      responses:
+        '201':
+          description: User registered successfully
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: httpOnly session cookie named sagetable_session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserResponse'
+              example:
+                data:
+                  user:
+                    id: "usr_123"
+                    email: "reader@example.com"
+                    role: "user"
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Password must be at least 8 characters"
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "EMAIL_EXISTS"
+                  message: "An account with that email already exists"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/sign-in:
+    post:
+      summary: Sign in with existing credentials
+      description: Verify email and password credentials, returning user data and setting an httpOnly session cookie.
+      operationId: signInUser
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInRequest'
+            example:
+              email: "reader@example.com"
+              password: "password123"
+      responses:
+        '200':
+          description: Signed in successfully
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: httpOnly session cookie named sagetable_session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserResponse'
+              example:
+                data:
+                  user:
+                    id: "usr_123"
+                    email: "reader@example.com"
+                    role: "user"
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Please enter a valid email address"
+        '401':
+          description: Invalid email or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "INVALID_CREDENTIALS"
+                  message: "Invalid email or password"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/sign-out:
+    post:
+      summary: Sign out of active session
+      description: Clears the active httpOnly JWT session cookie.
+      operationId: signOutUser
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: Signed out successfully
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Clears sagetable_session cookie with Max-Age=0
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignOutResponse'
+              example:
+                data:
+                  signedOut: true
+
+  /api/auth/me:
+    get:
+      summary: Get authenticated user profile
+      description: Returns the user profile associated with the current session cookie.
+      operationId: getCurrentUser
+      tags:
+        - Auth
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserResponse'
+              example:
+                data:
+                  user:
+                    id: "usr_123"
+                    email: "reader@example.com"
+                    role: "user"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "UNAUTHORIZED"
+                  message: "Authentication required"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/health:
+    get:
+      summary: Service health check
+      description: Liveness check endpoint requiring no database or environment variables.
+      operationId: getHealth
+      tags:
+        - System
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                data:
+                  status: "ok"
+
+  /api/roundtables:
+    post:
+      summary: Create a roundtable
+      description: Create a new roundtable question with selected figures for the authenticated user.
+      operationId: createRoundtable
+      tags:
+        - Roundtables
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoundtableInput'
+            example:
+              themeSlug: "choosing-a-career"
+              figureIds:
+                - "fig-twain"
+                - "fig-curie"
+              question: "How do I choose between two careers I love?"
+      responses:
+        '201':
+          description: Roundtable created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoundtableCreatedResponse'
+              example:
+                id: "rt_123"
+                data:
+                  id: "rt_123"
+                  roundtable:
+                    id: "rt_123"
+                    userId: "usr_123"
+                    question: "How do I choose between two careers I love?"
+                    themeId: "thm_123"
+                    createdAt: "2026-11-15T12:00:00.000Z"
+        '400':
+          description: Invalid roundtable parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Question must be at least 10 characters"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "UNAUTHORIZED"
+                  message: "Authentication required"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: List past roundtables
+      description: Retrieve all past roundtables created by the authenticated user.
+      operationId: listRoundtables
+      tags:
+        - Roundtables
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of user roundtables
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoundtableListResponse'
+              example:
+                data:
+                  roundtables:
+                    - id: "rt_123"
+                      question: "How do I choose between two careers I love?"
+                      createdAt: "2026-11-15T12:00:00.000Z"
+                      theme:
+                        name: "Choosing a Career"
+                        slug: "choosing-a-career"
+                      answers:
+                        - id: "ans_123"
+                          status: "completed"
+                          figure:
+                            id: "fig-twain"
+                            name: "Mark Twain"
+                            slug: "mark-twain"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "UNAUTHORIZED"
+                  message: "Authentication required"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/roundtables/{id}/stream:
+    get:
+      summary: Stream roundtable answers over SSE
+      description: Streams real-time figure answers, verbatim passages, and explanations via Server-Sent Events.
+      operationId: streamRoundtable
+      tags:
+        - Roundtables
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the roundtable
+          schema:
+            type: string
+          example: "rt_123"
+      responses:
+        '200':
+          description: Real-time Server-Sent Events stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              example: |
+                retry: 600000
+                event: figure-start
+                data: {"figureId":"fig-twain","figureName":"Mark Twain"}
+
+                retry: 600000
+                event: chunk
+                data: {"figureId":"fig-twain","text":"Always do right."}
+
+                retry: 600000
+                event: figure-done
+                data: {"figureId":"fig-twain","answerId":"ans_123","passages":[]}
+
+                retry: 600000
+                event: done
+                data: {"status":"complete"}
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "UNAUTHORIZED"
+                  message: "Authentication required"
+        '404':
+          description: Roundtable not found or belongs to another user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "NOT_FOUND"
+                  message: "Roundtable not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/openapi:
+    get:
+      summary: OpenAPI specification
+      description: Serves the OpenAPI 3.1 YAML specification for the SageTable API.
+      operationId: getOpenApiSpec
+      tags:
+        - System
+      responses:
+        '200':
+          description: OpenAPI 3.1 YAML document
+          content:
+            application/yaml:
+              schema:
+                type: string
+              example: "openapi: 3.1.0\ninfo:\n  title: SageTable API\n..."
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sagetable_session
+      description: httpOnly JWT session cookie issued on login and registration
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - role
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - user
+            - curator
+            - admin
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+          description: Plaintext password (minimum 8 characters)
+
+    SignInRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: Plaintext password
+
+    AuthUserResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - user
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+
+    SignOutResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - signedOut
+          properties:
+            signedOut:
+              type: boolean
+
+    HealthResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - status
+          properties:
+            status:
+              type: string
+              enum:
+                - ok
+
+    RoundtableInput:
+      type: object
+      required:
+        - themeSlug
+        - figureIds
+        - question
+      properties:
+        themeSlug:
+          type: string
+          minLength: 1
+          description: Slug of the selected theme
+        figureIds:
+          type: array
+          minItems: 2
+          maxItems: 3
+          uniqueItems: true
+          items:
+            type: string
+          description: 2 to 3 unique figure IDs participating in the roundtable
+        question:
+          type: string
+          minLength: 10
+          maxLength: 1000
+          description: User question (10-1000 characters)
+
+    RoundtableCreatedResponse:
+      type: object
+      required:
+        - id
+        - data
+      properties:
+        id:
+          type: string
+        data:
+          type: object
+          required:
+            - id
+            - roundtable
+          properties:
+            id:
+              type: string
+            roundtable:
+              type: object
+
+    RoundtableListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - roundtables
+          properties:
+            roundtables:
+              type: array
+              items:
+                type: object

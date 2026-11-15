@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import yaml from "js-yaml";
+import { load } from "js-yaml";
 import { describe, expect, it } from "vitest";
 
 function findRouteFiles(dir: string): string[] {
@@ -48,7 +48,7 @@ describe("OpenAPI Spec Contract Test", () => {
     ).toBe(true);
 
     const raw = fs.readFileSync(openApiPath, "utf-8");
-    const spec = yaml.load(raw) as Record<string, unknown>;
+    const spec = load(raw) as Record<string, unknown>;
 
     expect(spec).toBeDefined();
     expect(typeof spec).toBe("object");
@@ -64,7 +64,7 @@ describe("OpenAPI Spec Contract Test", () => {
     ).toBe(true);
 
     const raw = fs.readFileSync(openApiPath, "utf-8");
-    const spec = yaml.load(raw) as {
+    const spec = load(raw) as {
       paths?: Record<string, Record<string, unknown>>;
     };
     expect(spec?.paths).toBeDefined();
@@ -101,7 +101,7 @@ describe("OpenAPI Spec Contract Test", () => {
     ).toBe(true);
 
     const raw = fs.readFileSync(openApiPath, "utf-8");
-    const spec = yaml.load(raw) as {
+    const spec = load(raw) as {
       paths?: Record<string, Record<string, unknown>>;
     };
     expect(spec?.paths).toBeDefined();
