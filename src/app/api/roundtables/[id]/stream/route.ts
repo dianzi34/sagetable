@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 interface StreamRouteContext {
-  params: Promise<{ id: string }> | { id: string };
+  params: Promise<{ id: string }>;
 }
 
 function delay(ms: number): Promise<void> {
@@ -15,7 +15,7 @@ function delay(ms: number): Promise<void> {
 }
 
 function formatSse(event: string, data: unknown): string {
-  return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+  return `retry: 600000\nevent: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
 }
 
 function chunkText(text: string, wordsPerChunk = 3): string[] {
