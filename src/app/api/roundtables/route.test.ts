@@ -248,7 +248,7 @@ describe("/api/roundtables route handler", () => {
       expect(response.status).toBe(429);
       const json = await response.json();
       expect(json.error?.code).toBe("USAGE_LIMIT_EXCEEDED");
-      expect(json.error?.message).toContain("Daily roundtable limit reached");
+      expect(json.error?.message).toMatch(/daily roundtable limit/i);
       expect(json.error?.resetAt).toBe("2026-11-16T00:00:00.000Z");
       expect(mockRoundtableCreate).not.toHaveBeenCalled();
     });

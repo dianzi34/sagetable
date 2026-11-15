@@ -9,6 +9,10 @@ import {
   createRoundtable,
   listUserRoundtables,
 } from "@/server/services/roundtableService";
+import {
+  assertWithinLimit,
+  UsageLimitError,
+} from "@/server/services/usageLimitService";
 
 /**
  * Create a new roundtable for the authenticated user.
@@ -27,6 +31,24 @@ export async function POST(request: Request): Promise<NextResponse> {
   const parsed = await parseJsonBody(request, roundtableInputSchema);
   if ("error" in parsed) {
     return parsed.error;
+  }
+
+  try {
+    await assertWithinLimit(user.id);
+  } catch (error) {
+    if (error instanceof UsageLimitError) {
+      return NextResponse.json(
+        {
+          error: {
+            code: error.code,
+            message: error.message,
+            resetAt: error.resetAt,
+          },
+        },
+        { status: 429 },
+      );
+    }
+    throw error;
   }
 
   try {
