@@ -1,0 +1,262 @@
+import type { PrismaClient } from "@prisma/client";
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { createTestPrismaClient, resetTestDatabase } from "./testDb";
+
+let dbClient: PrismaClient;
+
+vi.mock("@/server/db", () => ({
+  get prisma() {
+    return dbClient;
+  },
+}));
+
+import {
+  createAnswerBankEntry,
+  createFigure,
+  createTheme,
+  CuratorError,
+  listAnswerBankEntries,
+  listFigures,
+  listThemes,
+  updateFigure,
+  updateTheme,
+  uploadWorkWithPassages,
+} from "./services/curatorService";
+
+describe("Curator content management integration", () => {
+  const originalEnv = process.env;
+
+  beforeAll(async () => {
+    process.env = {
+      ...originalEnv,
+      DATABASE_URL:
+        process.env.DATABASE_URL_TEST ??
+        "postgresql://postgres:postgres@localhost:5433/sagetable_test",
+      JWT_SECRET:
+        process.env.JWT_SECRET ??
+        "integration-test-jwt-secret-at-least-32-chars",
+    };
+    dbClient = createTestPrismaClient();
+    await dbClient.$connect();
+  });
+
+  beforeEach(async () => {
+    await resetTestDatabase(dbClient);
+  });
+
+  afterAll(async () => {
+    process.env = originalEnv;
+    if (dbClient) {
+      await dbClient.$disconnect();
+    }
+  });
+
+  it("creates and updates figures in PostgreSQL", async () => {
+    const created = await createFigure(
+      {
+        slug: "ada-lovelace",
+        name: "Ada Lovelace",
+        field: "Computing & Mathematics",
+        era: "1815-1852",
+        bio: "Pioneering English mathematician known for work on the Analytical Engine.",
+        avatarKey: "ada-lovelace",
+      },
+      dbClient,
+    );
+
+    expect(created.id).toBeDefined();
+    expect(created.slug).toBe("ada-lovelace");
+
+    const inDb = await dbClient.figure.findUnique({
+      where: { slug: "ada-lovelace" },
+    });
+    expect(inDb?.name).toBe("Ada Lovelace");
+
+    const updated = await updateFigure(
+      created.id,
+      {
+        name: "Augusta Ada King, Countess of Lovelace",
+        field: "Computing & Mathematics",
+        era: "1815-1852",
+        bio: "Updated biography.",
+        avatarKey: "ada-lovelace",
+      },
+      dbClient,
+    );
+
+    expect(updated.name).toBe("Augusta Ada King, Countess of Lovelace");
+
+    const figures = await listFigures(dbClient);
+    expect(figures).toHaveLength(1);
+    expect(figures[0]?.name).toBe("Augusta Ada King, Countess of Lovelace");
+  });
+
+  it("creates themes and links figures with join table", async () => {
+    const fig = await createFigure(
+      {
+        slug: "curie",
+        name: "Marie Curie",
+        field: "Physics & Chemistry",
+        era: "1867-1934",
+        bio: "Nobel laureate.",
+        avatarKey: "marie-curie",
+      },
+      dbClient,
+    );
+
+    const theme = await createTheme(
+      {
+        slug: "scientific-discovery",
+        name: "Scientific Discovery",
+        description: "Pursuit of truth through experimentation.",
+        suggestedQuestions: ["How to approach unknown problems?"],
+        figureIds: [fig.id],
+      },
+      dbClient,
+    );
+
+    expect(theme.slug).toBe("scientific-discovery");
+
+    const links = await dbClient.figureTheme.findMany({
+      where: { themeId: theme.id },
+    });
+    expect(links).toHaveLength(1);
+    expect(links[0]?.figureId).toBe(fig.id);
+
+    const themesList = await listThemes(dbClient);
+    expect(themesList).toHaveLength(1);
+    expect(themesList[0]?.figures).toHaveLength(1);
+
+    const updatedTheme = await updateTheme(
+      theme.id,
+      { description: "Updated discovery description." },
+      dbClient,
+    );
+    expect(updatedTheme.description).toBe("Updated discovery description.");
+  });
+
+  it("uploads public domain text, chunks it into passages, and populates search vectors", async () => {
+    const fig = await createFigure(
+      {
+        slug: "mark-twain",
+        name: "Mark Twain",
+        field: "Literature",
+        era: "1835-1910",
+        bio: "Humorist and writer.",
+        avatarKey: "mark-twain",
+      },
+      dbClient,
+    );
+
+    // Rejection when publicDomainConfirmed is false
+    await expect(
+      uploadWorkWithPassages(
+        {
+          figureId: fig.id,
+          title: "Roughing It",
+          year: 1872,
+          sourceUrl: "https://gutenberg.org/ebooks/3177",
+          publicDomainConfirmed: false,
+          textContent: "Some text...",
+        },
+        dbClient,
+      ),
+    ).rejects.toThrow(CuratorError);
+
+    // Successful upload when confirmed
+    const text = `## Chapter 1: The Western Journey\n\nMy brother had received an appointment as Secretary of Nevada Territory.\n\nI was anxious to see that famous silver land.\n\n## Chapter 2: The Stagecoach\n\nWe were aboard the overland stage with a great heap of mail sacks.`;
+
+    const result = await uploadWorkWithPassages(
+      {
+        figureId: fig.id,
+        title: "Roughing It",
+        year: 1872,
+        sourceUrl: "https://gutenberg.org/ebooks/3177",
+        publicDomainConfirmed: true,
+        textContent: text,
+      },
+      dbClient,
+    );
+
+    expect(result.work.title).toBe("Roughing It");
+    expect(result.passageCount).toBeGreaterThanOrEqual(2);
+
+    const passages = await dbClient.passage.findMany({
+      where: { workId: result.work.id },
+    });
+    expect(passages.length).toBe(result.passageCount);
+
+    // Verify search vector was generated by Postgres
+    const rawCheck = await dbClient.$queryRaw<{ count: bigint }[]>`
+      SELECT count(*) FROM "Passage"
+      WHERE "workId" = ${result.work.id} AND "searchVector" IS NOT NULL
+    `;
+    expect(Number(rawCheck[0]?.count)).toBe(result.passageCount);
+  });
+
+  it("creates and updates answer-bank entries with linked passages", async () => {
+    const fig = await createFigure(
+      {
+        slug: "twain",
+        name: "Mark Twain",
+        field: "Literature",
+        era: "1835-1910",
+        bio: "Humorist.",
+        avatarKey: "mark-twain",
+      },
+      dbClient,
+    );
+
+    const theme = await createTheme(
+      {
+        slug: "courage",
+        name: "Courage",
+        description: "Facing danger.",
+        suggestedQuestions: [],
+        figureIds: [fig.id],
+      },
+      dbClient,
+    );
+
+    const workResult = await uploadWorkWithPassages(
+      {
+        figureId: fig.id,
+        title: "Life on the Mississippi",
+        year: 1883,
+        sourceUrl: "https://gutenberg.org/ebooks/245",
+        publicDomainConfirmed: true,
+        textContent: "He agreed to teach me the Mississippi River from New Orleans to St. Louis for five hundred dollars.",
+      },
+      dbClient,
+    );
+
+    const passages = await dbClient.passage.findMany({
+      where: { workId: workResult.work.id },
+    });
+    const passage = passages[0]!;
+
+    const answer = await createAnswerBankEntry(
+      {
+        figureId: fig.id,
+        themeId: theme.id,
+        topicKeywords: "courage river fear piloting",
+        body: "Courage is resistance to fear, mastery of fear--not absence of fear.",
+        passages: [
+          {
+            passageId: passage.id,
+            explanation: "Twain reflects on the courage needed to learn the Mississippi.",
+            order: 0,
+          },
+        ],
+      },
+      dbClient,
+    );
+
+    expect(answer.id).toBeDefined();
+
+    const answersList = await listAnswerBankEntries({ figureId: fig.id }, dbClient);
+    expect(answersList).toHaveLength(1);
+    expect(answersList[0]?.passages).toHaveLength(1);
+    expect(answersList[0]?.passages[0]?.explanation).toContain("Mississippi");
+  });
+});
