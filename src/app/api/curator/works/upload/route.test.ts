@@ -73,6 +73,7 @@ describe("POST /api/curator/works/upload", () => {
         year: 1883,
         sourceUrl: "https://gutenberg.org/ebooks/245",
         publicDomainConfirmed: true,
+        fileName: "life-on-the-mississippi.txt",
         textContent: "Paragraph 1\n\nParagraph 2",
       }),
     });

@@ -35,6 +35,7 @@ export function WorkUploader({
       year: parseInt(year, 10),
       sourceUrl,
       publicDomainConfirmed: true,
+      fileName: `${title.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-") || "work"}.txt`,
       textContent,
     });
 
