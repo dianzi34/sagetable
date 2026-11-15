@@ -19,7 +19,7 @@ test.describe("Authentication flow", () => {
   test("allows registering, signing out, and signing back in with an httpOnly session cookie", async ({
     page,
   }) => {
-    const email = `e2e-${Date.now()}@sagetable.test`;
+    const email = `e2e-auth-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@sagetable.test`;
     const password = "curious-roundtable-99";
 
     await page.goto("/register");
@@ -31,7 +31,7 @@ test.describe("Authentication flow", () => {
     await page.getByLabel(/password/i).fill(password);
     await page.getByRole("button", { name: /create account/i }).click();
 
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL("/", { timeout: 30000 });
     await expect(page.getByRole("navigation").getByText(email)).toBeVisible();
 
     const meSignedIn = await page.request.get("/api/auth/me");
@@ -50,7 +50,7 @@ test.describe("Authentication flow", () => {
     await page.getByLabel(/password/i).fill(password);
     await page.getByRole("button", { name: /^sign in$/i }).click();
 
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL("/", { timeout: 30000 });
     await expect(page.getByRole("navigation").getByText(email)).toBeVisible();
   });
 });

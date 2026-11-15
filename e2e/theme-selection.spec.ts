@@ -1,17 +1,12 @@
 import { expect, test } from "@playwright/test";
+import { registerAndSignIn } from "./helpers/auth";
 
 test.describe("Theme selection and figure picking", () => {
   test("home -> /themes -> pick theme -> pick 3 figures -> chip fills question -> submit lands on /roundtable", async ({
     page,
   }) => {
     // 0. sign in as required by middleware for /themes
-    const email = `e2e-theme-${Date.now()}@sagetable.test`;
-    const password = "curious-roundtable-99";
-    await page.goto("/register");
-    await page.getByLabel(/email/i).fill(email);
-    await page.getByLabel(/password/i).fill(password);
-    await page.getByRole("button", { name: /create account/i }).click();
-    await expect(page).toHaveURL("/");
+    await registerAndSignIn(page);
 
     // 1. home
     await page.goto("/");
