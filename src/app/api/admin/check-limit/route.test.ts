@@ -89,7 +89,8 @@ describe("GET /api/admin/check-limit", () => {
       resetAt: "2026-11-14T00:00:00.000Z",
     });
 
-    const request = new Request("http://localhost:3000/api/admin/check-limit?enforce=true");
+    // Request WITHOUT any enforce field
+    const request = new Request("http://localhost:3000/api/admin/check-limit");
     enforceDailyRoundtableLimitMock.mockRejectedValueOnce(
       new UsageLimitError("2026-11-14T00:00:00.000Z"),
     );
@@ -100,5 +101,24 @@ describe("GET /api/admin/check-limit", () => {
     const body = await response.json();
     expect(body.error.code).toBe("USAGE_LIMIT_EXCEEDED");
     expect(body.error.message).toContain("2026-11-14T00:00:00.000Z");
+  });
+
+  it("always enforces usage limit on server and returns 429 without client enforce flag", async () => {
+    requireUserMock.mockResolvedValueOnce({
+      id: "u-2",
+      email: "overlimit@example.com",
+      role: "user",
+    });
+
+    // Request WITHOUT any enforce flag
+    const request = new Request("http://localhost:3000/api/admin/check-limit");
+    enforceDailyRoundtableLimitMock.mockRejectedValueOnce(
+      new UsageLimitError("2026-11-14T00:00:00.000Z"),
+    );
+
+    const response = await GET(request);
+    expect(response.status).toBe(429);
+    const body = await response.json();
+    expect(body.error.code).toBe("USAGE_LIMIT_EXCEEDED");
   });
 });
