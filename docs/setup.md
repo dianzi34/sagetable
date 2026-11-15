@@ -24,18 +24,21 @@ git clone <repository-url>
 cd sagetable
 
 # 2. Install dependencies (triggers prisma generate via postinstall)
-npm ci
+npm install
 
-# 3. Configure environment variables (names only: DATABASE_URL, DATABASE_URL_TEST, JWT_SECRET)
+# 3. Configure environment variables (copy .env.example to .env and fill values)
 cp .env.example .env
 
-# 4. Apply migrations to your PostgreSQL database
-npx prisma migrate deploy
+# 4. Start PostgreSQL (e.g. via Docker Compose or start local/Neon PostgreSQL)
+docker compose up -d
 
-# 5. Seed curated figures, themes, passages, and answers into the database
+# 5. Apply migrations to your PostgreSQL database
+npx prisma migrate dev
+
+# 6. Seed curated figures, themes, passages, and answers into the database
 npm run db:seed
 
-# 6. Start the development server
+# 7. Start the development server
 npm run dev
 ```
 
