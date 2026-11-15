@@ -21,9 +21,10 @@ interface RoundtablePageProps {
 /**
  * Roundtable page supporting live SSE answer streaming with fallback to fixtures for tests.
  */
-export default async function RoundtablePage({
-  searchParams,
-}: RoundtablePageProps = {}): Promise<ReactElement> {
+export default async function RoundtablePage(
+  props: RoundtablePageProps,
+): Promise<ReactElement> {
+  const searchParams = props?.searchParams;
   const params = searchParams ? await searchParams : {};
   const isLive = Boolean(params.theme || params.figures || params.q || params.id);
 

@@ -30,51 +30,67 @@ export function LiveRoundtable({
     initialThemeSlug ? initialThemeSlug.replace(/-/g, " ") : "Roundtable",
   );
   const [error, setError] = useState<string | null>(null);
-  const [isDone, setIsDone] = useState<boolean>(false);
+  const [, setIsDone] = useState<boolean>(false);
+  const isDoneRef = useRef<boolean>(false);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const postPromiseRef = useRef<Promise<string | null> | null>(null);
+  const createdRoundtableIdRef = useRef<string | null>(roundtableId ?? null);
+
+  const figureIdsKey = initialFigureIds.join(",");
 
   useEffect(() => {
     let cancelled = false;
 
     async function initRoundtable(): Promise<void> {
       setError(null);
+      isDoneRef.current = false;
       setIsDone(false);
 
-      let targetId = roundtableId;
+      let targetId = createdRoundtableIdRef.current ?? roundtableId;
 
       if (!targetId) {
-        if (!initialQuestion || initialFigureIds.length === 0) {
+        const figureIds = figureIdsKey ? figureIdsKey.split(",") : [];
+        if (!initialQuestion || figureIds.length === 0) {
           setError("Missing question or figures to start roundtable.");
           return;
         }
 
         try {
-          const res = await fetch("/api/roundtables", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              themeSlug: initialThemeSlug,
-              figureIds: initialFigureIds,
-              question: initialQuestion,
-            }),
-          });
+          if (!postPromiseRef.current) {
+            postPromiseRef.current = (async () => {
+              const res = await fetch("/api/roundtables", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  themeSlug: initialThemeSlug,
+                  figureIds,
+                  question: initialQuestion,
+                }),
+              });
 
-          if (!res.ok) {
-            const errJson = await res.json().catch(() => ({}));
-            throw new Error(
-              errJson.error?.message ?? "Failed to create roundtable",
-            );
+              if (!res.ok) {
+                const errJson = await res.json().catch(() => ({}));
+                throw new Error(
+                  errJson.error?.message ?? "Failed to create roundtable",
+                );
+              }
+
+              const data = await res.json();
+              const id = data.data?.id ?? data.id;
+              createdRoundtableIdRef.current = id;
+              if (data.data?.roundtable?.theme?.name) {
+                setThemeName(data.data.roundtable.theme.name);
+              }
+              if (data.data?.roundtable?.question) {
+                setQuestion(data.data.roundtable.question);
+              }
+              return id;
+            })();
           }
 
-          const data = await res.json();
-          targetId = data.data?.id ?? data.id;
-          if (data.data?.roundtable?.theme?.name) {
-            setThemeName(data.data.roundtable.theme.name);
-          }
-          if (data.data?.roundtable?.question) {
-            setQuestion(data.data.roundtable.question);
-          }
+          targetId = (await postPromiseRef.current) ?? undefined;
         } catch (err) {
+          postPromiseRef.current = null;
           if (!cancelled) {
             setError(
               err instanceof Error
@@ -87,6 +103,10 @@ export function LiveRoundtable({
       }
 
       if (cancelled || !targetId) return;
+
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
 
       const es = new EventSource(`/api/roundtables/${targetId}/stream`);
       eventSourceRef.current = es;
@@ -105,12 +125,11 @@ export function LiveRoundtable({
 
           setCards((prev) => {
             const next = new Map(prev);
-            const existing = next.get(payload.figureId);
             next.set(payload.figureId, {
               figure: fig,
               status: "streaming",
-              body: existing ? existing.body : "",
-              passages: existing ? existing.passages : [],
+              body: "",
+              passages: [],
             });
             return next;
           });
@@ -189,18 +208,23 @@ export function LiveRoundtable({
 
       es.addEventListener("done", () => {
         if (cancelled) return;
+        isDoneRef.current = true;
         setIsDone(true);
         es.close();
+        if (eventSourceRef.current === es) {
+          eventSourceRef.current = null;
+        }
       });
 
       es.addEventListener("error", () => {
-        if (cancelled) return;
-        if (!isDone) {
-          setError(
-            "Connection interrupted. Answers may be incomplete.",
-          );
-        }
+        if (cancelled || isDoneRef.current) return;
+        setError(
+          "Connection interrupted. Answers may be incomplete.",
+        );
         es.close();
+        if (eventSourceRef.current === es) {
+          eventSourceRef.current = null;
+        }
       });
     }
 
@@ -210,9 +234,10 @@ export function LiveRoundtable({
       cancelled = true;
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
+        eventSourceRef.current = null;
       }
     };
-  }, [initialFigureIds, initialQuestion, initialThemeSlug, isDone, roundtableId]);
+  }, [figureIdsKey, initialQuestion, initialThemeSlug, roundtableId]);
 
   const cardList: AnswerCardData[] = Array.from(cards.values()).map((state) => ({
     figure: state.figure,

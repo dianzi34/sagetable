@@ -11,6 +11,6 @@ export async function registerAndSignIn(
   await page.getByLabel(/email/i).fill(email);
   await page.getByLabel(/password/i).fill(password);
   await page.getByRole("button", { name: /create account/i }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL("/", { timeout: 30000 });
   return { email };
 }

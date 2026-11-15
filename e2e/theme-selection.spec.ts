@@ -5,7 +5,7 @@ test.describe("Theme selection and figure picking", () => {
   test("home -> /themes -> pick theme -> pick 3 figures -> chip fills question -> submit lands on /roundtable", async ({
     page,
   }) => {
-    // 0. sign in
+    // 0. sign in as required by middleware for /themes
     await registerAndSignIn(page);
 
     // 1. home

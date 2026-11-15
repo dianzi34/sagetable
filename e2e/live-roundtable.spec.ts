@@ -44,6 +44,28 @@ test.describe("Live streaming roundtable", () => {
       await expect(card.getByRole("blockquote")).toBeVisible({ timeout: 15000 });
     }
 
+    // Wait 5 seconds after streaming finishes to ensure reconnect does not duplicate answers
+    await page.waitForTimeout(5000);
+
+    const firstSentences = [
+      "Honestly, I didn't get my career right on the first try.",
+      "You don't have to pick the right major right away.",
+      "If you picked the wrong major, don't stay stuck in it.",
+    ];
+
+    const bodyText = await page.locator("body").innerText();
+    for (const sentence of firstSentences) {
+      const occurrences = bodyText.split(sentence).length - 1;
+      expect(occurrences).toBe(1);
+    }
+
+    for (const name of expectedFigures) {
+      const figureCards = page
+        .getByRole("article")
+        .filter({ has: page.getByRole("heading", { name }) });
+      await expect(figureCards).toHaveCount(1);
+    }
+
     // 5. Check /history page lists this roundtable
     await page.goto("/history");
     await expect(page).toHaveURL("/history");
