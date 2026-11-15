@@ -7,6 +7,15 @@ const mockRoundtableFindMany = vi.fn();
 const mockThemeFindUnique = vi.fn();
 const mockUserFindUnique = vi.fn();
 const mockFigureFindMany = vi.fn();
+const mockAssertWithinLimit = vi.fn();
+
+vi.mock("@/server/services/usageLimitService", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/server/services/usageLimitService")>();
+  return {
+    ...actual,
+    assertWithinLimit: (...args: unknown[]) => mockAssertWithinLimit(...args),
+  };
+});
 
 vi.mock("@/server/db", () => ({
   prisma: {
@@ -26,6 +35,7 @@ vi.mock("@/server/db", () => ({
   },
 }));
 
+import { UsageLimitError } from "@/server/services/usageLimitService";
 import { GET, POST } from "./route";
 
 const VALID_DATABASE_URL =
@@ -44,6 +54,17 @@ describe("/api/roundtables route handler", () => {
     mockRoundtableCreate.mockReset();
     mockRoundtableFindMany.mockReset();
     mockThemeFindUnique.mockReset();
+    mockUserFindUnique.mockReset();
+    mockFigureFindMany.mockReset();
+    mockAssertWithinLimit.mockReset();
+
+    mockAssertWithinLimit.mockResolvedValue({
+      allowed: true,
+      usage: 0,
+      limit: 5,
+      remaining: 5,
+      resetAt: "2026-11-16T00:00:00.000Z",
+    });
     mockUserFindUnique.mockReset();
     mockFigureFindMany.mockReset();
 
@@ -201,6 +222,35 @@ describe("/api/roundtables route handler", () => {
       const id = json.data?.id ?? json.id;
       expect(id).toBe("roundtable-xyz");
       expect(mockRoundtableCreate).toHaveBeenCalledTimes(1);
+      expect(mockAssertWithinLimit).toHaveBeenCalledWith("user-1");
+    });
+
+    it("returns 429 when user exceeds daily roundtable limit", async () => {
+      const cookie = await createAuthCookie();
+      mockAssertWithinLimit.mockRejectedValueOnce(
+        new UsageLimitError("2026-11-16T00:00:00.000Z", 5),
+      );
+
+      const request = new Request("http://localhost:3000/api/roundtables", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          cookie,
+        },
+        body: JSON.stringify({
+          themeSlug: "choosing-a-career",
+          figureIds: ["mark-twain", "marie-curie"],
+          question: "How do I choose between two careers I love?",
+        }),
+      });
+
+      const response = await POST(request);
+      expect(response.status).toBe(429);
+      const json = await response.json();
+      expect(json.error?.code).toBe("USAGE_LIMIT_EXCEEDED");
+      expect(json.error?.message).toContain("Daily roundtable limit reached");
+      expect(json.error?.resetAt).toBe("2026-11-16T00:00:00.000Z");
+      expect(mockRoundtableCreate).not.toHaveBeenCalled();
     });
   });
 
