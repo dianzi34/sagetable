@@ -81,7 +81,9 @@ describe("OpenAPI Spec Contract Test", () => {
       for (const method of methods) {
         const documented = spec.paths?.[apiPath]?.[method];
         if (!documented) {
-          missingEndpoints.push(`${method.toUpperCase()} ${apiPath} (from ${path.relative(process.cwd(), file)})`);
+          missingEndpoints.push(
+            `${method.toUpperCase()} ${apiPath} (from ${path.relative(process.cwd(), file)})`
+          );
         }
       }
     }
@@ -89,6 +91,51 @@ describe("OpenAPI Spec Contract Test", () => {
     expect(
       missingEndpoints,
       `The following endpoints are missing from docs/api/openapi.yaml:\n${missingEndpoints.join("\n")}`
+    ).toEqual([]);
+  });
+
+  it("fails if openapi.yaml documents a method + path that has no corresponding route handler", () => {
+    expect(
+      fs.existsSync(openApiPath),
+      "docs/api/openapi.yaml does not exist"
+    ).toBe(true);
+
+    const raw = fs.readFileSync(openApiPath, "utf-8");
+    const spec = yaml.load(raw) as {
+      paths?: Record<string, Record<string, unknown>>;
+    };
+    expect(spec?.paths).toBeDefined();
+
+    const routeFiles = findRouteFiles(apiDir);
+    const existingEndpoints = new Set<string>();
+
+    for (const file of routeFiles) {
+      const apiPath = routeFileToApiPath(apiDir, file);
+      const methods = extractRouteMethods(file);
+      for (const method of methods) {
+        existingEndpoints.add(`${method.toLowerCase()} ${apiPath}`);
+      }
+    }
+
+    const HTTP_METHODS = ["get", "post", "put", "delete", "patch", "options", "head"];
+    const staleEndpoints: string[] = [];
+
+    for (const [docPath, pathItem] of Object.entries(spec.paths || {})) {
+      if (!pathItem || typeof pathItem !== "object") continue;
+      for (const key of Object.keys(pathItem)) {
+        const method = key.toLowerCase();
+        if (HTTP_METHODS.includes(method)) {
+          const endpointKey = `${method} ${docPath}`;
+          if (!existingEndpoints.has(endpointKey)) {
+            staleEndpoints.push(`${method.toUpperCase()} ${docPath}`);
+          }
+        }
+      }
+    }
+
+    expect(
+      staleEndpoints,
+      `The following endpoints in docs/api/openapi.yaml have no route handler under src/app/api:\n${staleEndpoints.join("\n")}`
     ).toEqual([]);
   });
 });
