@@ -47,10 +47,10 @@ export const uploadWorkSchema = z.object({
     error: "Public domain confirmation is required",
   }),
   fileName: z
-    .string()
+    .string({ error: "File name is required" })
     .trim()
-    .regex(/\.txt$/i, "Only .txt files are supported")
-    .optional(),
+    .min(1, "File name is required")
+    .regex(/\.txt$/i, "Only .txt files are supported"),
   contentType: z
     .string()
     .trim()
