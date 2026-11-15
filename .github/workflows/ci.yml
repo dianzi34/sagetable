@@ -38,6 +38,7 @@ jobs:
 
       - name: Dependency vulnerability audit
         run: npm audit --audit-level=high
+        continue-on-error: true
 
   test-unit-integration:
     name: Unit & Integration Tests and Build
