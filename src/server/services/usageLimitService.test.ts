@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  assertWithinLimit,
   checkDailyRoundtableLimit,
   enforceDailyRoundtableLimit,
   getDailyRoundtableUsage,
   UsageLimitError,
 } from "./usageLimitService";
+import { AuthError } from "@/server/auth/session";
 
 describe("usageLimitService (unit)", () => {
   it("getDailyRoundtableUsage counts roundtables created today (UTC)", async () => {
@@ -144,5 +146,67 @@ describe("usageLimitService (unit)", () => {
         fixedNow,
       ),
     ).resolves.not.toThrow();
+  });
+
+  it("assertWithinLimit loads user from db and throws UsageLimitError(429) when limit reached", async () => {
+    const fixedNow = new Date("2026-11-13T10:00:00Z");
+    const mockPrisma = {
+      user: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "user-1",
+          role: "USER",
+        }),
+      },
+      roundtable: {
+        count: vi.fn().mockResolvedValue(5),
+      },
+      usageLimit: {
+        findUnique: vi.fn().mockResolvedValue({
+          role: "USER",
+          dailyRoundtables: 5,
+        }),
+      },
+    };
+
+    await expect(
+      assertWithinLimit("user-1", mockPrisma as never, fixedNow),
+    ).rejects.toThrow(UsageLimitError);
+  });
+
+  it("assertWithinLimit returns LimitStatus when user is under limit", async () => {
+    const fixedNow = new Date("2026-11-13T10:00:00Z");
+    const mockPrisma = {
+      user: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "user-1",
+          role: "USER",
+        }),
+      },
+      roundtable: {
+        count: vi.fn().mockResolvedValue(2),
+      },
+      usageLimit: {
+        findUnique: vi.fn().mockResolvedValue({
+          role: "USER",
+          dailyRoundtables: 5,
+        }),
+      },
+    };
+
+    const status = await assertWithinLimit("user-1", mockPrisma as never, fixedNow);
+    expect(status.allowed).toBe(true);
+    expect(status.remaining).toBe(3);
+  });
+
+  it("assertWithinLimit throws AuthError(401) if user not found", async () => {
+    const mockPrisma = {
+      user: {
+        findUnique: vi.fn().mockResolvedValue(null),
+      },
+    };
+
+    await expect(
+      assertWithinLimit("nonexistent-user", mockPrisma as never),
+    ).rejects.toThrow(AuthError);
   });
 });
