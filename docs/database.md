@@ -52,6 +52,7 @@ erDiagram
     Passage {
         cuid id PK
         text workId FK
+        text key UK "unique key from seed"
         text location
         text text
         tsvector searchVector "generated STORED"
@@ -159,7 +160,7 @@ erDiagram
 | `Theme` | Discussion theme (`slug`, `name`, `description`, `suggestedQuestions` `TEXT[]`). | `id` PK (`cuid`); `slug` `UNIQUE` (`Theme_slug_key`); `suggestedQuestions` defaults to `'{}'`. |
 | `FigureTheme` | Maps themes to ordered suggested figures. | Composite PK `(figureId, themeId)`; FKs -> `Figure.id`, `Theme.id` (`ON DELETE CASCADE`). |
 | `Work` | Public-domain work metadata (`title`, `year`, `sourceUrl`, `publicDomainConfirmed`). | `id` PK (`cuid`); `UNIQUE (figureId, title)` (`Work_figureId_title_key`); `figureId` FK -> `Figure.id` (`ON DELETE CASCADE`). |
-| `Passage` | Verbatim public-domain passage chunk (`location`, `text`, `searchVector`). | `id` PK (`cuid`); `workId` FK -> `Work.id` (`ON DELETE CASCADE`); GIN index on `searchVector`. |
+| `Passage` | Verbatim public-domain passage chunk (`location`, `text`, `searchVector`). | `id` PK (`cuid`); `key` `UNIQUE` (`Passage_key_key`); `workId` FK -> `Work.id` (`ON DELETE CASCADE`); GIN index on `searchVector`. |
 | `Answer` | Curated first-person response (`topicKeywords`, `body`, `searchVector`). | `id` PK (`cuid`); FKs -> `Figure.id`, `Theme.id` (`ON DELETE CASCADE`); GIN index on `searchVector`. |
 | `AnswerPassage` | Links curated answers to 1–2 verbatim passages with a plain-English `explanation` and display `order`. | Composite PK `(answerId, passageId)`; FKs -> `Answer.id`, `Passage.id` (`ON DELETE CASCADE`). |
 
@@ -179,6 +180,7 @@ erDiagram
 | `Figure_slug_key` | `Figure` | `UNIQUE B-tree` | `(slug)` |
 | `Theme_slug_key` | `Theme` | `UNIQUE B-tree` | `(slug)` |
 | `Work_figureId_title_key` | `Work` | `UNIQUE B-tree` | `(figureId, title)` |
+| `Passage_key_key` | `Passage` | `UNIQUE B-tree` | `(key)` |
 | `FigureTheme_pkey` | `FigureTheme` | `PRIMARY KEY` | `(figureId, themeId)` |
 | `AnswerPassage_pkey` | `AnswerPassage` | `PRIMARY KEY` | `(answerId, passageId)` |
 | `RoundtableAnswer_roundtableId_figureId_key` | `RoundtableAnswer` | `UNIQUE B-tree` | `(roundtableId, figureId)` |

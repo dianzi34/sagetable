@@ -14,6 +14,33 @@ SageTable serves curated, citation-grounded answers using PostgreSQL full-text s
 
 ---
 
+## Quick Start (Fresh Clone)
+
+For a fresh checkout, run these steps in order:
+
+```bash
+# 1. Clone the repository and enter the directory
+git clone <repository-url>
+cd sagetable
+
+# 2. Install dependencies (triggers prisma generate via postinstall)
+npm ci
+
+# 3. Configure environment variables (names only: DATABASE_URL, DATABASE_URL_TEST, JWT_SECRET)
+cp .env.example .env
+
+# 4. Apply migrations to your PostgreSQL database
+npx prisma migrate deploy
+
+# 5. Seed curated figures, themes, passages, and answers into the database
+npm run db:seed
+
+# 6. Start the development server
+npm run dev
+```
+
+---
+
 ## 1. Install Dependencies
 
 ```bash
@@ -136,7 +163,7 @@ Curated public-domain figures, themes, works, passages, and answer-bank entries 
 
 The curated JSON dataset is validated against [`docs/content-style.md`](./content-style.md) by [`src/lib/seedContent.ts`](../src/lib/seedContent.ts) and tested by [`src/lib/seedContent.test.ts`](../src/lib/seedContent.test.ts).
 
-> **Seed Runner Status:** Database seeding (`prisma/seed.ts` / `npx prisma db seed`) is tracked in issue `#36` (pending merge into `main`). Once merged, seed `DATABASE_URL` with `npx prisma db seed` after applying migrations.
+> **Seed Runner:** Database seeding (`prisma/seed.ts`) is on `main` (#55). Run `npm run db:seed` (or `npx prisma db seed`) after applying migrations to populate all 5 historical figures, 5 themes, works, passages with unique keys, and 25 answers with full-text search vectors.
 
 ---
 
