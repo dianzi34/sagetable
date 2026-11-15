@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const requireUserMock = vi.fn();
 const checkDailyRoundtableLimitMock = vi.fn();
 const enforceDailyRoundtableLimitMock = vi.fn();
+const assertWithinLimitMock = vi.fn();
 
 vi.mock("@/server/auth/session", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/server/auth/session")>();
@@ -27,6 +28,7 @@ vi.mock("@/server/services/usageLimitService", () => {
     UsageLimitError: MockUsageLimitError,
     checkDailyRoundtableLimit: (...args: unknown[]) => checkDailyRoundtableLimitMock(...args),
     enforceDailyRoundtableLimit: (...args: unknown[]) => enforceDailyRoundtableLimitMock(...args),
+    assertWithinLimit: (...args: unknown[]) => assertWithinLimitMock(...args),
   };
 });
 
@@ -91,13 +93,14 @@ describe("GET /api/admin/check-limit", () => {
 
     // Request WITHOUT any enforce field
     const request = new Request("http://localhost:3000/api/admin/check-limit");
-    enforceDailyRoundtableLimitMock.mockRejectedValueOnce(
+    assertWithinLimitMock.mockRejectedValueOnce(
       new UsageLimitError("2026-11-14T00:00:00.000Z"),
     );
 
     const response = await GET(request);
 
     expect(response.status).toBe(429);
+    expect(assertWithinLimitMock).toHaveBeenCalledWith("u-1");
     const body = await response.json();
     expect(body.error.code).toBe("USAGE_LIMIT_EXCEEDED");
     expect(body.error.message).toContain("2026-11-14T00:00:00.000Z");
@@ -112,12 +115,13 @@ describe("GET /api/admin/check-limit", () => {
 
     // Request WITHOUT any enforce flag
     const request = new Request("http://localhost:3000/api/admin/check-limit");
-    enforceDailyRoundtableLimitMock.mockRejectedValueOnce(
+    assertWithinLimitMock.mockRejectedValueOnce(
       new UsageLimitError("2026-11-14T00:00:00.000Z"),
     );
 
     const response = await GET(request);
     expect(response.status).toBe(429);
+    expect(assertWithinLimitMock).toHaveBeenCalledWith("u-2");
     const body = await response.json();
     expect(body.error.code).toBe("USAGE_LIMIT_EXCEEDED");
   });
