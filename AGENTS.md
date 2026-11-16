@@ -257,7 +257,7 @@ Don't:
 
 ### 4.2 Dependencies
 
-- Prefer: `zod`, `jose`, `bcryptjs`, `server-only`, Prisma, React Testing Library, native `fetch`, `Intl` for dates.
+- Prefer: `zod`, `jose`, `bcryptjs`, `server-only`, Prisma, React Testing Library, native `fetch`, `Intl` for dates, `swagger-ui-react`.
 - Avoid: UI kits (MUI, Chakra, Bootstrap), `axios`, `moment`, Redux. Never add AI SDK packages (`@anthropic-ai/sdk`, `voyageai`, `openai`, etc.).
 - Ask before adding any dependency not listed here, and state why it is needed.
 
