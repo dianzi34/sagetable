@@ -1,14 +1,18 @@
 import "server-only";
-import type { PrismaClient } from "@prisma/client";
+import type { Prisma, PrismaClient } from "@prisma/client";
 import { prisma } from "@/server/db";
 import { matchAnswers, type FigureAnswerMatch } from "@/server/matching";
 import { AuthError } from "@/server/auth/session";
+import { assertWithinLimit } from "@/server/services/usageLimitService";
+
+type PrismaLike = PrismaClient | Prisma.TransactionClient;
 
 export interface CreateRoundtableInput {
   userId: string;
   themeSlug?: string | null;
   figureIds: string[];
   question: string;
+  enforceLimit?: boolean;
 }
 
 export interface RoundtableWithDetails {
@@ -41,12 +45,9 @@ export interface RoundtableWithDetails {
   }>;
 }
 
-/**
- * Create a new roundtable for the user with pending figure answers.
- */
-export async function createRoundtable(
+async function createRoundtableInner(
   input: CreateRoundtableInput,
-  db: PrismaClient = prisma,
+  db: PrismaLike,
 ): Promise<RoundtableWithDetails> {
   const normalizedQuestion = input.question.trim();
 
@@ -108,6 +109,32 @@ export async function createRoundtable(
   });
 
   return created;
+}
+
+/**
+ * Create a new roundtable for the user with pending figure answers.
+ * When enforceLimit is true, atomically asserts the daily usage limit under a transaction
+ * with row-level locking on the User to prevent concurrent race-condition overages.
+ */
+export async function createRoundtable(
+  input: CreateRoundtableInput,
+  db: PrismaLike = prisma,
+): Promise<RoundtableWithDetails> {
+  if (input.enforceLimit) {
+    if ("$transaction" in db && typeof (db as PrismaClient).$transaction === "function") {
+      return (db as PrismaClient).$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT id FROM "User" WHERE id = ${input.userId} FOR UPDATE`;
+        await assertWithinLimit(input.userId, tx);
+        return createRoundtableInner(input, tx);
+      });
+    }
+
+    await db.$queryRaw`SELECT id FROM "User" WHERE id = ${input.userId} FOR UPDATE`;
+    await assertWithinLimit(input.userId, db);
+    return createRoundtableInner(input, db);
+  }
+
+  return createRoundtableInner(input, db);
 }
 
 /**

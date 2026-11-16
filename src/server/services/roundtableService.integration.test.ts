@@ -147,4 +147,73 @@ describe.skipIf(!hasTestDb)("roundtableService integration on sagetable_test", (
       getRoundtableForUser(roundtable.id, "different-user-id", prisma),
     ).rejects.toThrow();
   });
+
+  it("atomically enforces usage limits under concurrent roundtable creation", async () => {
+    const user = await prisma.user.upsert({
+      where: { email: "concurrency-limit@sagetable.test" },
+      update: {},
+      create: {
+        email: "concurrency-limit@sagetable.test",
+        passwordHash: "$2a$10$fakehashfortestingonly9999999999999999999999999999",
+        role: "USER",
+      },
+    });
+
+    await prisma.roundtable.deleteMany({ where: { userId: user.id } });
+
+    await prisma.usageLimit.upsert({
+      where: { role: "USER" },
+      update: { dailyRoundtables: 1 },
+      create: { role: "USER", dailyRoundtables: 1 },
+    });
+
+    try {
+      const results = await Promise.allSettled([
+        createRoundtable(
+          {
+            userId: user.id,
+            themeSlug: careerThemeSlug,
+            figureIds: [twainId],
+            question: "Concurrent Question A from user?",
+            enforceLimit: true,
+          },
+          prisma,
+        ),
+        createRoundtable(
+          {
+            userId: user.id,
+            themeSlug: careerThemeSlug,
+            figureIds: [twainId],
+            question: "Concurrent Question B from user?",
+            enforceLimit: true,
+          },
+          prisma,
+        ),
+      ]);
+
+      const fulfilled = results.filter((r) => r.status === "fulfilled");
+      const rejected = results.filter((r) => r.status === "rejected");
+
+      expect(fulfilled).toHaveLength(1);
+      expect(rejected).toHaveLength(1);
+
+      const rejectionReason = (rejected[0] as PromiseRejectedResult).reason;
+      expect(rejectionReason.name).toBe("UsageLimitError");
+      expect(rejectionReason.code).toBe("USAGE_LIMIT_EXCEEDED");
+      expect(rejectionReason.status).toBe(429);
+
+      const totalCreated = await prisma.roundtable.count({
+        where: { userId: user.id },
+      });
+      expect(totalCreated).toBe(1);
+    } finally {
+      await prisma.usageLimit.upsert({
+        where: { role: "USER" },
+        update: { dailyRoundtables: 5 },
+        create: { role: "USER", dailyRoundtables: 5 },
+      });
+      await prisma.roundtable.deleteMany({ where: { userId: user.id } });
+      await prisma.user.deleteMany({ where: { id: user.id } });
+    }
+  });
 });
