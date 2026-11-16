@@ -82,7 +82,7 @@ jobs:
         run: npm run test:integration
 
       - name: Build production bundle
-        run: npm run build
+        run: npm run build || (echo "Retrying build after transient Google Fonts network error..." && rm -rf .next && npm run build)
 
   e2e:
     name: Playwright E2E
