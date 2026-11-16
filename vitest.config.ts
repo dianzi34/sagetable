@@ -9,6 +9,10 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./src"),
       "server-only": path.resolve(__dirname, "./vitest.server-only.ts"),
+      "swagger-ui-react/swagger-ui.css": path.resolve(
+        __dirname,
+        "./vitest.server-only.ts",
+      ),
     },
   },
   test: {

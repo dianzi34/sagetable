@@ -1,0 +1,2103 @@
+openapi: 3.1.0
+info:
+  title: SageTable API
+  version: 0.1.0
+  description: >
+    API documentation for SageTable, where users bring questions to a
+    roundtable of great historical figures.
+servers:
+  - url: /
+    description: Current deployment origin
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new account
+      description: Create a new user with email and password, returning user data and setting an httpOnly session cookie.
+      operationId: registerUser
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            example:
+              email: "reader@example.com"
+              password: "password123"
+      responses:
+        '201':
+          description: User registered successfully
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: httpOnly session cookie named sagetable_session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserResponse'
+              example:
+                data:
+                  user:
+                    id: "usr_123"
+                    email: "reader@example.com"
+                    role: "user"
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Password must be at least 8 characters"
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "EMAIL_EXISTS"
+                  message: "An account with that email already exists"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/sign-in:
+    post:
+      summary: Sign in with existing credentials
+      description: Verify email and password credentials, returning user data and setting an httpOnly session cookie.
+      operationId: signInUser
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInRequest'
+            example:
+              email: "reader@example.com"
+              password: "password123"
+      responses:
+        '200':
+          description: Signed in successfully
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: httpOnly session cookie named sagetable_session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserResponse'
+              example:
+                data:
+                  user:
+                    id: "usr_123"
+                    email: "reader@example.com"
+                    role: "user"
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Please enter a valid email address"
+        '401':
+          description: Invalid email or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "INVALID_CREDENTIALS"
+                  message: "Invalid email or password"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/sign-out:
+    post:
+      summary: Sign out of active session
+      description: Clears the active httpOnly JWT session cookie.
+      operationId: signOutUser
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: Signed out successfully
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: Clears sagetable_session cookie with Max-Age=0
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignOutResponse'
+              example:
+                data:
+                  signedOut: true
+
+  /api/auth/me:
+    get:
+      summary: Get authenticated user profile
+      description: Returns the user profile associated with the current session cookie.
+      operationId: getCurrentUser
+      tags:
+        - Auth
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserResponse'
+              example:
+                data:
+                  user:
+                    id: "usr_123"
+                    email: "reader@example.com"
+                    role: "user"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "UNAUTHORIZED"
+                  message: "Authentication required"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/health:
+    get:
+      summary: Service health check
+      description: Liveness check endpoint requiring no database or environment variables.
+      operationId: getHealth
+      tags:
+        - System
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                data:
+                  status: "ok"
+
+  /api/roundtables:
+    post:
+      summary: Create a roundtable
+      description: Create a new roundtable question with selected figures for the authenticated user.
+      operationId: createRoundtable
+      tags:
+        - Roundtables
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoundtableInput'
+            example:
+              themeSlug: "choosing-a-career"
+              figureIds:
+                - "fig-twain"
+                - "fig-curie"
+              question: "How do I choose between two careers I love?"
+      responses:
+        '201':
+          description: Roundtable created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoundtableCreatedResponse'
+              example:
+                id: "rt_123"
+                data:
+                  id: "rt_123"
+                  roundtable:
+                    id: "rt_123"
+                    userId: "usr_123"
+                    question: "How do I choose between two careers I love?"
+                    themeId: "thm_123"
+                    createdAt: "2026-11-15T12:00:00.000Z"
+        '400':
+          description: Invalid roundtable parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Question must be at least 10 characters"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "UNAUTHORIZED"
+                  message: "Authentication required"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: List past roundtables
+      description: Retrieve all past roundtables created by the authenticated user.
+      operationId: listRoundtables
+      tags:
+        - Roundtables
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of user roundtables
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoundtableListResponse'
+              example:
+                data:
+                  roundtables:
+                    - id: "rt_123"
+                      question: "How do I choose between two careers I love?"
+                      createdAt: "2026-11-15T12:00:00.000Z"
+                      theme:
+                        name: "Choosing a Career"
+                        slug: "choosing-a-career"
+                      answers:
+                        - id: "ans_123"
+                          status: "completed"
+                          figure:
+                            id: "fig-twain"
+                            name: "Mark Twain"
+                            slug: "mark-twain"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "UNAUTHORIZED"
+                  message: "Authentication required"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/roundtables/{id}/stream:
+    get:
+      summary: Stream roundtable answers over SSE
+      description: Streams real-time figure answers, verbatim passages, and explanations via Server-Sent Events.
+      operationId: streamRoundtable
+      tags:
+        - Roundtables
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the roundtable
+          schema:
+            type: string
+          example: "rt_123"
+      responses:
+        '200':
+          description: Real-time Server-Sent Events stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              example: |
+                retry: 600000
+                event: figure-start
+                data: {"figureId":"fig-twain","figureName":"Mark Twain"}
+
+                retry: 600000
+                event: chunk
+                data: {"figureId":"fig-twain","text":"Always do right."}
+
+                retry: 600000
+                event: figure-done
+                data: {"figureId":"fig-twain","answerId":"ans_123","passages":[]}
+
+                retry: 600000
+                event: done
+                data: {"status":"complete"}
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "UNAUTHORIZED"
+                  message: "Authentication required"
+        '404':
+          description: Roundtable not found or belongs to another user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "NOT_FOUND"
+                  message: "Roundtable not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/audit-logs:
+    get:
+      summary: List audit logs
+      description: Retrieve recent administrative audit logs (admin only).
+      operationId: listAuditLogs
+      tags:
+        - Admin
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of audit logs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogListResponse'
+              example:
+                data:
+                  logs:
+                    - id: "log-1"
+                      actorId: "admin-1"
+                      action: "ROLE_CHANGE"
+                      targetId: "user-2"
+                      before:
+                        role: "USER"
+                      after:
+                        role: "CURATOR"
+                      createdAt: "2026-11-12T10:00:00.000Z"
+                      actor:
+                        email: "admin@sagetable.org"
+                        role: "ADMIN"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "UNAUTHORIZED"
+                  message: "Authentication required"
+        '403':
+          description: Forbidden (admin role required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "FORBIDDEN"
+                  message: "Insufficient permissions"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/check-limit:
+    get:
+      summary: Check daily roundtable usage limit
+      description: Check the caller's daily roundtable usage and remaining quota, optionally enforcing the limit.
+      operationId: checkDailyLimit
+      tags:
+        - Admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: enforce
+          in: query
+          required: false
+          description: When true, enforces the daily limit and returns 429 if exceeded
+          schema:
+            type: boolean
+          example: false
+      responses:
+        '200':
+          description: Daily limit status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LimitStatusResponse'
+              example:
+                data:
+                  allowed: true
+                  usage: 2
+                  limit: 5
+                  remaining: 3
+                  resetAt: "2026-11-14T00:00:00.000Z"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "UNAUTHORIZED"
+                  message: "Authentication required"
+        '429':
+          description: Daily roundtable limit reached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "USAGE_LIMIT_EXCEEDED"
+                  message: "Daily roundtable limit reached. Limit resets at 2026-11-14T00:00:00.000Z"
+                  resetAt: "2026-11-14T00:00:00.000Z"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/limits:
+    get:
+      summary: List role usage limits
+      description: Retrieve daily roundtable limits for all roles (admin only).
+      operationId: listUsageLimits
+      tags:
+        - Admin
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of role usage limits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageLimitListResponse'
+              example:
+                data:
+                  limits:
+                    - role: "USER"
+                      dailyRoundtables: 5
+                    - role: "CURATOR"
+                      dailyRoundtables: 20
+                    - role: "ADMIN"
+                      dailyRoundtables: 100
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (admin role required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      summary: Set role usage limit
+      description: Update the daily roundtable limit for a role (admin only).
+      operationId: setUsageLimit
+      tags:
+        - Admin
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetUsageLimitRequest'
+            example:
+              role: "USER"
+              dailyRoundtables: 10
+      responses:
+        '200':
+          description: Role usage limit updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageLimitResponse'
+              example:
+                data:
+                  limit:
+                    role: "USER"
+                    dailyRoundtables: 10
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Daily limit must be 0 or greater"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (admin role required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/users:
+    get:
+      summary: List users
+      description: Retrieve all registered users and their assigned roles (admin only).
+      operationId: listAdminUsers
+      tags:
+        - Admin
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserListResponse'
+              example:
+                data:
+                  users:
+                    - id: "u-1"
+                      email: "user1@example.com"
+                      role: "USER"
+                      createdAt: "2026-11-01T00:00:00.000Z"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (admin role required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/admin/users/{id}:
+    patch:
+      summary: Update user role
+      description: Update the role of a user (admin only).
+      operationId: updateUserRole
+      tags:
+        - Admin
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the user
+          schema:
+            type: string
+          example: "u-1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoleRequest'
+            example:
+              role: "CURATOR"
+      responses:
+        '200':
+          description: User role updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserResponse'
+              example:
+                data:
+                  user:
+                    id: "u-1"
+                    email: "user1@example.com"
+                    role: "CURATOR"
+                    createdAt: "2026-11-01T00:00:00.000Z"
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Invalid input"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (admin role required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "NOT_FOUND"
+                  message: "User not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/curator/answers:
+    get:
+      summary: List curator answer-bank entries
+      description: Retrieve answer-bank entries optionally filtered by figure or theme (curator or admin only).
+      operationId: listCuratorAnswers
+      tags:
+        - Curator
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: figureId
+          in: query
+          required: false
+          description: Filter answers by figure ID
+          schema:
+            type: string
+          example: "fig-twain"
+        - name: themeId
+          in: query
+          required: false
+          description: Filter answers by theme ID
+          schema:
+            type: string
+          example: "thm-courage"
+      responses:
+        '200':
+          description: List of answer-bank entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CuratorAnswerListResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (curator or admin role required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create answer-bank entry
+      description: Create a new answer-bank entry with passages and explanations (curator or admin only).
+      operationId: createCuratorAnswer
+      tags:
+        - Curator
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAnswerBankEntryRequest'
+            example:
+              figureId: "fig-twain"
+              themeId: "thm-courage"
+              topicKeywords: "courage fear bravery"
+              body: "Courage is resistance to fear, mastery of fear, not absence of fear."
+              passages:
+                - passageId: "psg-1"
+                  explanation: "Twain distinguishes courage from lack of fear in Pudd'nhead Wilson."
+                  order: 0
+      responses:
+        '201':
+          description: Answer-bank entry created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CuratorAnswerResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Invalid answer data"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (curator or admin role required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/curator/answers/{id}:
+    patch:
+      summary: Update answer-bank entry
+      description: Update an existing answer-bank entry (curator or admin only).
+      operationId: updateCuratorAnswer
+      tags:
+        - Curator
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the answer to update
+          schema:
+            type: string
+          example: "ans-1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAnswerBankEntryRequest'
+            example:
+              body: "Updated answer text"
+      responses:
+        '200':
+          description: Answer-bank entry updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CuratorAnswerResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Invalid answer updates"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (curator or admin role required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/curator/figures:
+    get:
+      summary: List curator figures
+      description: Retrieve all figures for curation (curator or admin only).
+      operationId: listCuratorFigures
+      tags:
+        - Curator
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of figures
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CuratorFigureListResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (curator or admin role required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create figure
+      description: Create a new historical figure (curator or admin only).
+      operationId: createCuratorFigure
+      tags:
+        - Curator
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFigureRequest'
+            example:
+              slug: "isaac-newton"
+              name: "Isaac Newton"
+              field: "Mathematics & Physics"
+              era: "1642-1727"
+              bio: "English polymath."
+              avatarKey: "newton"
+      responses:
+        '201':
+          description: Figure created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CuratorFigureResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Invalid figure data"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (curator or admin role required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/curator/figures/{id}:
+    patch:
+      summary: Update figure
+      description: Update details of an existing figure (curator or admin only).
+      operationId: updateCuratorFigure
+      tags:
+        - Curator
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the figure
+          schema:
+            type: string
+          example: "fig-1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFigureRequest'
+            example:
+              name: "Mark Twain Updated"
+      responses:
+        '200':
+          description: Figure updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CuratorFigureResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Invalid figure updates"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (curator or admin role required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/curator/themes:
+    get:
+      summary: List curator themes
+      description: Retrieve all themes with assigned figures for curation (curator or admin only).
+      operationId: listCuratorThemes
+      tags:
+        - Curator
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: List of themes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CuratorThemeListResponse'
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (curator or admin role required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      summary: Create theme
+      description: Create a new theme with starter questions and assigned figures (curator or admin only).
+      operationId: createCuratorTheme
+      tags:
+        - Curator
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateThemeRequest'
+            example:
+              slug: "resilience"
+              name: "Resilience"
+              description: "Overcoming hardship and persevering"
+              suggestedQuestions:
+                - "How to persevere through failure?"
+              figureIds:
+                - "fig-1"
+      responses:
+        '201':
+          description: Theme created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CuratorThemeResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Invalid theme data"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (curator or admin role required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/curator/themes/{id}:
+    patch:
+      summary: Update theme
+      description: Update details, suggested questions, or assigned figures of a theme (curator or admin only).
+      operationId: updateCuratorTheme
+      tags:
+        - Curator
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier of the theme
+          schema:
+            type: string
+          example: "thm-1"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateThemeRequest'
+            example:
+              name: "Courage & Resilience"
+      responses:
+        '200':
+          description: Theme updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CuratorThemeResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Invalid theme updates"
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (curator or admin role required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/curator/works/upload:
+    post:
+      summary: Upload public domain work
+      description: Upload a public domain text work for a figure, automatically chunking it into passages (curator or admin only).
+      operationId: uploadCuratorWork
+      tags:
+        - Curator
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadWorkRequest'
+            example:
+              figureId: "fig-1"
+              title: "Life on the Mississippi"
+              year: 1883
+              sourceUrl: "https://gutenberg.org/ebooks/245"
+              publicDomainConfirmed: true
+              fileName: "mississippi.txt"
+              textContent: "Chapter 1\n\nThe Mississippi is well worth reading about..."
+      responses:
+        '201':
+          description: Work uploaded and chunked into passages successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadWorkResponse'
+        '400':
+          description: Validation error or invalid file type
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "VALIDATION_ERROR"
+                  message: "Public domain confirmation is required to upload a work."
+        '401':
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden (curator or admin role required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          description: File size exceeds 200 KB limit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error:
+                  code: "PAYLOAD_TOO_LARGE"
+                  message: "File size exceeds 200 KB limit"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/openapi:
+    get:
+      summary: OpenAPI specification
+      description: Serves the OpenAPI 3.1 YAML specification for the SageTable API.
+      operationId: getOpenApiSpec
+      tags:
+        - System
+      responses:
+        '200':
+          description: OpenAPI 3.1 YAML document
+          content:
+            application/yaml:
+              schema:
+                type: string
+              example: "openapi: 3.1.0\ninfo:\n  title: SageTable API\n..."
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sagetable_session
+      description: httpOnly JWT session cookie issued on login and registration
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            resetAt:
+              type: string
+              description: Reset timestamp for rate-limited requests
+
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - role
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - user
+            - curator
+            - admin
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+          description: Plaintext password (minimum 8 characters)
+
+    SignInRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: Plaintext password
+
+    AuthUserResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - user
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+
+    SignOutResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - signedOut
+          properties:
+            signedOut:
+              type: boolean
+
+    HealthResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - status
+          properties:
+            status:
+              type: string
+              enum:
+                - ok
+
+    RoundtableInput:
+      type: object
+      required:
+        - themeSlug
+        - figureIds
+        - question
+      properties:
+        themeSlug:
+          type: string
+          minLength: 1
+          description: Slug of the selected theme
+        figureIds:
+          type: array
+          minItems: 2
+          maxItems: 3
+          uniqueItems: true
+          items:
+            type: string
+          description: 2 to 3 unique figure IDs participating in the roundtable
+        question:
+          type: string
+          minLength: 10
+          maxLength: 1000
+          description: User question (10-1000 characters)
+
+    RoundtableCreatedResponse:
+      type: object
+      required:
+        - id
+        - data
+      properties:
+        id:
+          type: string
+        data:
+          type: object
+          required:
+            - id
+            - roundtable
+          properties:
+            id:
+              type: string
+            roundtable:
+              type: object
+
+    RoundtableListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - roundtables
+          properties:
+            roundtables:
+              type: array
+              items:
+                type: object
+
+    AuditLogItem:
+      type: object
+      required:
+        - id
+        - actorId
+        - action
+        - targetId
+        - createdAt
+        - actor
+      properties:
+        id:
+          type: string
+        actorId:
+          type: string
+        action:
+          type: string
+        targetId:
+          type: string
+        before:
+          type: object
+          nullable: true
+        after:
+          type: object
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        actor:
+          type: object
+          required:
+            - email
+            - role
+          properties:
+            email:
+              type: string
+              format: email
+            role:
+              type: string
+              enum:
+                - USER
+                - CURATOR
+                - ADMIN
+
+    AuditLogListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - logs
+          properties:
+            logs:
+              type: array
+              items:
+                $ref: '#/components/schemas/AuditLogItem'
+
+    LimitStatus:
+      type: object
+      required:
+        - allowed
+        - usage
+        - limit
+        - remaining
+        - resetAt
+      properties:
+        allowed:
+          type: boolean
+          description: Whether the user is allowed to start another roundtable
+        usage:
+          type: integer
+          description: Number of roundtables started today
+        limit:
+          type: integer
+          description: Daily limit of roundtables for the user's role
+        remaining:
+          type: integer
+          description: Number of remaining roundtables allowed today
+        resetAt:
+          type: string
+          format: date-time
+          description: Reset timestamp for the daily quota
+
+    LimitStatusResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          $ref: '#/components/schemas/LimitStatus'
+
+    UsageLimitItem:
+      type: object
+      required:
+        - role
+        - dailyRoundtables
+      properties:
+        role:
+          type: string
+          enum:
+            - USER
+            - CURATOR
+            - ADMIN
+        dailyRoundtables:
+          type: integer
+          minimum: 0
+
+    UsageLimitListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - limits
+          properties:
+            limits:
+              type: array
+              items:
+                $ref: '#/components/schemas/UsageLimitItem'
+
+    SetUsageLimitRequest:
+      type: object
+      required:
+        - role
+        - dailyRoundtables
+      properties:
+        role:
+          type: string
+          enum:
+            - USER
+            - CURATOR
+            - ADMIN
+            - user
+            - curator
+            - admin
+        dailyRoundtables:
+          type: integer
+          minimum: 0
+          description: Daily roundtable limit (must be 0 or greater)
+
+    UsageLimitResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - limit
+          properties:
+            limit:
+              $ref: '#/components/schemas/UsageLimitItem'
+
+    AdminUserItem:
+      type: object
+      required:
+        - id
+        - email
+        - role
+        - createdAt
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum:
+            - USER
+            - CURATOR
+            - ADMIN
+        createdAt:
+          type: string
+          format: date-time
+
+    AdminUserListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - users
+          properties:
+            users:
+              type: array
+              items:
+                $ref: '#/components/schemas/AdminUserItem'
+
+    AdminUserResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - user
+          properties:
+            user:
+              $ref: '#/components/schemas/AdminUserItem'
+
+    UpdateRoleRequest:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          enum:
+            - USER
+            - CURATOR
+            - ADMIN
+            - user
+            - curator
+            - admin
+
+    CuratorFigure:
+      type: object
+      required:
+        - id
+        - slug
+        - name
+        - field
+        - era
+        - bio
+        - avatarKey
+      properties:
+        id:
+          type: string
+        slug:
+          type: string
+        name:
+          type: string
+        field:
+          type: string
+        era:
+          type: string
+        bio:
+          type: string
+        avatarKey:
+          type: string
+
+    CreateFigureRequest:
+      type: object
+      required:
+        - slug
+        - name
+        - field
+        - era
+        - bio
+        - avatarKey
+      properties:
+        slug:
+          type: string
+          pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+          minLength: 2
+        name:
+          type: string
+          minLength: 1
+        field:
+          type: string
+          minLength: 1
+        era:
+          type: string
+          minLength: 1
+        bio:
+          type: string
+          minLength: 1
+        avatarKey:
+          type: string
+          minLength: 1
+
+    UpdateFigureRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        field:
+          type: string
+          minLength: 1
+        era:
+          type: string
+          minLength: 1
+        bio:
+          type: string
+          minLength: 1
+        avatarKey:
+          type: string
+          minLength: 1
+
+    CuratorFigureResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - figure
+          properties:
+            figure:
+              $ref: '#/components/schemas/CuratorFigure'
+
+    CuratorFigureListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - figures
+          properties:
+            figures:
+              type: array
+              items:
+                $ref: '#/components/schemas/CuratorFigure'
+
+    CuratorThemeFigure:
+      type: object
+      required:
+        - figureId
+        - order
+      properties:
+        figureId:
+          type: string
+        order:
+          type: integer
+        figure:
+          $ref: '#/components/schemas/CuratorFigure'
+
+    CuratorTheme:
+      type: object
+      required:
+        - id
+        - slug
+        - name
+        - description
+        - suggestedQuestions
+      properties:
+        id:
+          type: string
+        slug:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        suggestedQuestions:
+          type: array
+          items:
+            type: string
+        figures:
+          type: array
+          items:
+            $ref: '#/components/schemas/CuratorThemeFigure'
+
+    CreateThemeRequest:
+      type: object
+      required:
+        - slug
+        - name
+        - description
+      properties:
+        slug:
+          type: string
+          pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+          minLength: 2
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+        suggestedQuestions:
+          type: array
+          items:
+            type: string
+        figureIds:
+          type: array
+          items:
+            type: string
+
+    UpdateThemeRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+        suggestedQuestions:
+          type: array
+          items:
+            type: string
+        figureIds:
+          type: array
+          items:
+            type: string
+
+    CuratorThemeResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - theme
+          properties:
+            theme:
+              $ref: '#/components/schemas/CuratorTheme'
+
+    CuratorThemeListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - themes
+          properties:
+            themes:
+              type: array
+              items:
+                $ref: '#/components/schemas/CuratorTheme'
+
+    AnswerPassageInput:
+      type: object
+      required:
+        - passageId
+        - explanation
+      properties:
+        passageId:
+          type: string
+          minLength: 1
+        explanation:
+          type: string
+          minLength: 1
+        order:
+          type: integer
+          default: 0
+
+    CreateAnswerBankEntryRequest:
+      type: object
+      required:
+        - figureId
+        - themeId
+        - topicKeywords
+        - body
+      properties:
+        figureId:
+          type: string
+          minLength: 1
+        themeId:
+          type: string
+          minLength: 1
+        topicKeywords:
+          type: string
+          minLength: 1
+        body:
+          type: string
+          minLength: 1
+        passages:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnswerPassageInput'
+
+    UpdateAnswerBankEntryRequest:
+      type: object
+      properties:
+        figureId:
+          type: string
+          minLength: 1
+        themeId:
+          type: string
+          minLength: 1
+        topicKeywords:
+          type: string
+          minLength: 1
+        body:
+          type: string
+          minLength: 1
+        passages:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnswerPassageInput'
+
+    CuratorAnswer:
+      type: object
+      required:
+        - id
+        - figureId
+        - themeId
+        - topicKeywords
+        - body
+      properties:
+        id:
+          type: string
+        figureId:
+          type: string
+        themeId:
+          type: string
+        topicKeywords:
+          type: string
+        body:
+          type: string
+        figure:
+          $ref: '#/components/schemas/CuratorFigure'
+        theme:
+          type: object
+        passages:
+          type: array
+          items:
+            type: object
+
+    CuratorAnswerResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - answer
+          properties:
+            answer:
+              $ref: '#/components/schemas/CuratorAnswer'
+
+    CuratorAnswerListResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - answers
+          properties:
+            answers:
+              type: array
+              items:
+                $ref: '#/components/schemas/CuratorAnswer'
+
+    UploadWorkRequest:
+      type: object
+      required:
+        - figureId
+        - title
+        - year
+        - sourceUrl
+        - publicDomainConfirmed
+        - textContent
+      properties:
+        figureId:
+          type: string
+          minLength: 1
+          description: ID of the authoring figure
+        title:
+          type: string
+          minLength: 1
+          description: Title of the work
+        year:
+          type: integer
+          minimum: 0
+          description: Year published
+        sourceUrl:
+          type: string
+          format: uri
+          description: Source URL where the public-domain work was obtained
+        publicDomainConfirmed:
+          type: boolean
+          enum:
+            - true
+          description: Confirmation that the work is in the public domain
+        fileName:
+          type: string
+          pattern: '\.txt$'
+          description: Optional original filename (must end with .txt)
+        contentType:
+          type: string
+          pattern: '^text/plain'
+          description: Optional content MIME type (must be text/plain)
+        textContent:
+          type: string
+          minLength: 1
+          description: Verbatim text content of the work (max 200 KB)
+
+    UploadWorkResponse:
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          type: object
+          required:
+            - work
+            - passageCount
+          properties:
+            work:
+              type: object
+              required:
+                - id
+                - figureId
+                - title
+                - year
+                - sourceUrl
+                - publicDomainConfirmed
+              properties:
+                id:
+                  type: string
+                figureId:
+                  type: string
+                title:
+                  type: string
+                year:
+                  type: integer
+                sourceUrl:
+                  type: string
+                  format: uri
+                publicDomainConfirmed:
+                  type: boolean
+            passageCount:
+              type: integer
+              description: Number of passages created from chunking

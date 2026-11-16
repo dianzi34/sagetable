@@ -73,6 +73,7 @@ describe("POST /api/curator/works/upload", () => {
         year: 1883,
         sourceUrl: "https://gutenberg.org/ebooks/245",
         publicDomainConfirmed: true,
+        fileName: "life-on-the-mississippi.txt",
         textContent: "Paragraph 1\n\nParagraph 2",
       }),
     });
@@ -155,5 +156,80 @@ describe("POST /api/curator/works/upload", () => {
     const body = await response.json();
     expect(body.error.code).toBe("PAYLOAD_TOO_LARGE");
     expect(body.error.message).toMatch(/200\s*kb/i);
+  });
+
+  it("returns 400 when filename is missing", async () => {
+    requireRoleMock.mockResolvedValueOnce({ id: "curator-1", role: "curator" });
+
+    const request = new Request("http://localhost:3000/api/curator/works/upload", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        figureId: "fig-1",
+        title: "Discourse on Method",
+        year: 1637,
+        sourceUrl: "https://gutenberg.org/ebooks/59",
+        publicDomainConfirmed: true,
+        // fileName is missing
+        textContent: "Valid content paragraph 1\n\nValid content paragraph 2",
+      }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error.code).toBe("VALIDATION_ERROR");
+    expect(body.error.message).toMatch(/file name/i);
+  });
+
+  it("returns 400 when filename is notes.pdf", async () => {
+    requireRoleMock.mockResolvedValueOnce({ id: "curator-1", role: "curator" });
+
+    const request = new Request("http://localhost:3000/api/curator/works/upload", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        figureId: "fig-1",
+        title: "Discourse on Method",
+        year: 1637,
+        sourceUrl: "https://gutenberg.org/ebooks/59",
+        publicDomainConfirmed: true,
+        fileName: "notes.pdf",
+        textContent: "Valid content paragraph 1\n\nValid content paragraph 2",
+      }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(400);
+    const body = await response.json();
+    expect(body.error.code).toBe("VALIDATION_ERROR");
+    expect(body.error.message).toMatch(/only \.txt files/i);
+  });
+
+  it("accepts upload with case-insensitive NOTES.TXT filename", async () => {
+    requireRoleMock.mockResolvedValueOnce({ id: "curator-1", role: "curator" });
+    uploadWorkWithPassagesMock.mockResolvedValueOnce({
+      work: { id: "w-1", title: "Discourse on Method" },
+      passageCount: 5,
+    });
+
+    const request = new Request("http://localhost:3000/api/curator/works/upload", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        figureId: "fig-1",
+        title: "Discourse on Method",
+        year: 1637,
+        sourceUrl: "https://gutenberg.org/ebooks/59",
+        publicDomainConfirmed: true,
+        fileName: "NOTES.TXT",
+        textContent: "Valid content paragraph 1\n\nValid content paragraph 2",
+      }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(201);
+    const body = await response.json();
+    expect(body.data.passageCount).toBe(5);
   });
 });

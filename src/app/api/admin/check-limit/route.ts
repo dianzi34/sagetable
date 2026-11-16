@@ -3,23 +3,21 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { AuthError, requireUser } from "@/server/auth/session";
 import {
+  assertWithinLimit,
   checkDailyRoundtableLimit,
-  enforceDailyRoundtableLimit,
   UsageLimitError,
 } from "@/server/services/usageLimitService";
 
 /**
  * Check the authenticated caller's own daily roundtable usage and remaining quota (uses requireUser).
+ * Server always enforces limit via assertWithinLimit(user.id) and returns 429 when quota is exceeded.
  */
 export async function GET(request: Request): Promise<NextResponse> {
   try {
     const user = await requireUser(request);
-    const url = new URL(request.url);
-    const enforce = url.searchParams.get("enforce") === "true";
 
-    if (enforce) {
-      await enforceDailyRoundtableLimit(user);
-    }
+    // Always enforce usage limit on the server without relying on client flag
+    await assertWithinLimit(user.id);
 
     const status = await checkDailyRoundtableLimit(user.id, user.role);
     return NextResponse.json({ data: status });
