@@ -10,7 +10,6 @@ import {
   listUserRoundtables,
 } from "@/server/services/roundtableService";
 import {
-  assertWithinLimit,
   UsageLimitError,
 } from "@/server/services/usageLimitService";
 
@@ -34,7 +33,21 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
-    await assertWithinLimit(user.id);
+    const roundtable = await createRoundtable({
+      userId: user.id,
+      themeSlug: parsed.data.themeSlug,
+      figureIds: parsed.data.figureIds,
+      question: parsed.data.question,
+      enforceLimit: true,
+    });
+
+    return NextResponse.json(
+      {
+        id: roundtable.id,
+        data: { id: roundtable.id, roundtable },
+      },
+      { status: 201 },
+    );
   } catch (error) {
     if (error instanceof UsageLimitError) {
       return NextResponse.json(
@@ -48,25 +61,6 @@ export async function POST(request: Request): Promise<NextResponse> {
         { status: 429 },
       );
     }
-    throw error;
-  }
-
-  try {
-    const roundtable = await createRoundtable({
-      userId: user.id,
-      themeSlug: parsed.data.themeSlug,
-      figureIds: parsed.data.figureIds,
-      question: parsed.data.question,
-    });
-
-    return NextResponse.json(
-      {
-        id: roundtable.id,
-        data: { id: roundtable.id, roundtable },
-      },
-      { status: 201 },
-    );
-  } catch {
     return jsonError(500, "INTERNAL_ERROR", "Failed to create roundtable");
   }
 }

@@ -17,8 +17,8 @@ vi.mock("@/server/services/usageLimitService", async (importOriginal) => {
   };
 });
 
-vi.mock("@/server/db", () => ({
-  prisma: {
+vi.mock("@/server/db", () => {
+  const mockDb = {
     user: {
       findUnique: (...args: unknown[]) => mockUserFindUnique(...args),
     },
@@ -32,8 +32,16 @@ vi.mock("@/server/db", () => ({
       create: (...args: unknown[]) => mockRoundtableCreate(...args),
       findMany: (...args: unknown[]) => mockRoundtableFindMany(...args),
     },
-  },
-}));
+    $transaction: vi.fn(async (callback: unknown) => {
+      if (typeof callback === "function") {
+        return (callback as (tx: unknown) => Promise<unknown>)(mockDb);
+      }
+      return Promise.all(callback as unknown[]);
+    }),
+    $queryRaw: vi.fn().mockResolvedValue([]),
+  };
+  return { prisma: mockDb };
+});
 
 import { UsageLimitError } from "@/server/services/usageLimitService";
 import { GET, POST } from "./route";
@@ -222,7 +230,7 @@ describe("/api/roundtables route handler", () => {
       const id = json.data?.id ?? json.id;
       expect(id).toBe("roundtable-xyz");
       expect(mockRoundtableCreate).toHaveBeenCalledTimes(1);
-      expect(mockAssertWithinLimit).toHaveBeenCalledWith("user-1");
+      expect(mockAssertWithinLimit).toHaveBeenCalledWith("user-1", expect.anything());
     });
 
     it("returns 429 when user exceeds daily roundtable limit", async () => {
