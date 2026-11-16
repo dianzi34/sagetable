@@ -41,7 +41,11 @@ describe("US-10 / Issue #16: Multi-stage CI/CD, CodeQL, Environment Management, 
     expect(existsSync(path.join(ROOT_DIR, deployPath))).toBe(true);
 
     const deployYaml = readRepoFile(deployPath);
+    expect(deployYaml).toContain("workflow_run:");
+    expect(deployYaml).toContain('workflows: ["CI"]');
     expect(deployYaml).toContain("branches:\n      - main");
+    expect(deployYaml).toContain("github.event.workflow_run.conclusion == 'success'");
+    expect(deployYaml).not.toMatch(/if:.*secrets\./);
     expect(deployYaml).toContain("vercel pull");
     expect(deployYaml).toContain("--environment=production");
     expect(deployYaml).toContain("vercel build --prod");
